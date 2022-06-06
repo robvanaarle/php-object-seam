@@ -1,0 +1,32 @@
+{
+    "name": "robvanaarle/php-object-seam",
+    "description": "An easy way to create code seams to break dependencies with minimal code changes in order to test legacy PHP code",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Rob van Aarle"
+        }
+    ],
+    "keywords": [
+        "seam",
+        "legacy",
+        "unittest"
+    ],
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": ">=7.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "PHPObjectSeam\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PHPObjectSeam\\": "tests/unit/"
+        }
+    }
+}
