@@ -1,6 +1,6 @@
 {
     "name": "robvanaarle/php-object-seam",
-    "description": "An easy way to create code seams to break dependencies with minimal code changes in order to test legacy PHP code",
+    "description": "An easy way to create object seams to break dependencies with minimal code changes in order to test legacy PHP code",
     "type": "library",
     "authors": [
         {
