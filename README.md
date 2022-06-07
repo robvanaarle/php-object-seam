@@ -23,6 +23,7 @@ As legacy code often runs on older PHP versions, this package aims to support as
 - Capture and retrieve public and protected method calls
 - Capture and retrieve public and protected static method calls
 - Autocomplete in PhpStorm when using the `CreatesObjectSeams` trait
+- Testing framework agnostic
 
 This allows for the following dependency breaking techniques from the book _Working Effectively with Legacy Code_.
 - Subclass and make public
