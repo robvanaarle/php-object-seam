@@ -1,9 +1,9 @@
-# PHPObjectSeam
-PHPObjectSeam provides an easy way to create object seams in PHP. These are used in legacy code for breaking dependencies to make code testable with minimal changes to the Class Under Test.
+# PHP Object Seam
+PHP Object Seam provides an easy way to create object seams in PHP. These are used in legacy code for breaking dependencies to make code testable with minimal changes to the Class Under Test.
 
 Legacy code is hard to extend and maintain because of dependencies. Ideally it needs to be refactored, however there isn't always time for that. To be confident about new features or bug fixes to legacy code, automated tests need to be in place. But legacy code tends not to have (enough) automated tests. These are also hard to add, because of the same dependencies. To put tests in place, the dependencies have to be broken first by changing the code. These changes need to be tested as well, but that is difficult because of the same reasons.
 
-In _Working Effectively with Legacy Code_ Michael Feathers defines a seam as _"a place to alter program behavior, without changing the code"_. This enables breaking of dependencies and adding automated tests with no or minimal change to the code. This library offers a way to create one of the seam types: object seams. With object seams it's possible to change the Object Under Test in automated tests and leave the code of the Class Under Test as is.
+In his book _Working Effectively with Legacy Code_ Michael Feathers defines a seam as _"a place to alter program behavior, without changing the code"_. This enables breaking of dependencies and adding automated tests with no or minimal change to the code. This library offers a way to create one of the seam types: object seams. With object seams it's possible to change the Object Under Test in automated tests and leave the code of the Class Under Test as is.
 
 
 ## Installation
@@ -18,13 +18,13 @@ As legacy code often runs on older PHP versions, this package aims to support as
 - Call protected and private methods
 - Call protected static methods
 - Override public and protected methods
-- Override public and protecteed static methods
+- Override public and protected static methods
 - Instantiate an object with a custom constructor
 - Capture and retrieve public and protected method calls
 - Capture and retrieve public and protected static method calls
 - Autocomplete in PhpStorm when using the `CreatesObjectSeams` trait
 
-This allows for the following dependency breaking techniques from _Working Effectively with Legacy Code_.
+This allows for the following dependency breaking techniques from the book _Working Effectively with Legacy Code_.
 - Subclass and make public
 - Subclass and override
 - Expose static method
@@ -33,10 +33,10 @@ This allows for the following dependency breaking techniques from _Working Effec
 - Less code: much of the required code is generated
 - Faster to write
 - More explicit about the intent to break dependencies: manually created object seam code tends to become fuzzy
-- ObjectSeams can be partially constructed before a test and altered (and even constructed) in the test
+- An `ObjectSeam` can be partially constructed before tests and altered (and even constructed) for specific test
 
 ## Basic Usage
-Use the trait `PHPObjectSeam\CreatedObjectSeams` in your test class to create an `ObjectSeams`. An `ObjectSeam` is usually created for the Object Under Test. It can then be altered with no or minimal code changes to the Class Under Test, for example to call non-public methods or override method behaviour. An created `ObjectSeam` is unconstructed: the original constuctor, `__construct`, has not been called. This allows for setting up an `ObjectSeam` that can be reused and customized by multiple tests.
+Use the trait `PHPObjectSeam\CreatedObjectSeams` in your test class to create an `ObjectSeams`. An `ObjectSeam` is usually created for the Object Under Test. It can then be altered with no or minimal code changes to the Class Under Test, for example to call non-public methods or override method behaviour. A created `ObjectSeam` is unconstructed: the original constructor, `__construct`, has not been called. This allows for setting up an `ObjectSeam` that can be reused and customized by multiple tests.
 
 ```php
 class FooTest
@@ -48,7 +48,7 @@ class FooTest
         $foo = $this->createObjectSeam(Foo::class);
         // $foo has type Foo&PHPObjectSeam\ObjectSeam
         
-        // Acces seam through seam() to alter the behaviour of the object
+        // Access seam through seam() to alter the behaviour of the object
         $foo->seam()
           ->override('connect', fn ($username, $password) => 'dummy_token')
           ->customConstruct(function($arg1) {
@@ -59,7 +59,8 @@ class FooTest
     }
 }
 ```
-## Examples
+
+## Usage
 
 ### Call non-public method
 ```php
@@ -84,7 +85,7 @@ Override with a Closure:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $result = $foo->seam()->override('protectedMethod', function(int $arg1) {
-  return $this->otherExistingMethod() * 5;
+  return $this->otherMethod($arg1) * 5;
 });
 ```
 
@@ -125,7 +126,7 @@ $foo->seam()->customConstruct(function($arg1) {
 
 or set a custom constructor and call it later:
 ```php
-// i.e. in the setUp of your test
+// i.e. in the setup of your test
 $this->foo = $this->createObjectSeam(Foo::class);
 $this->foo->seam()->setCustomConstructor(function($arg1) {
     $this->url = 'http://www.dummy.url/' . $arg1;
