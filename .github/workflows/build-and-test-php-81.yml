@@ -1,0 +1,13 @@
+name: Build and test - PHP 8.1
+on:
+  push:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  call-build-and-test:
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      php_version: 8.1
+      phpunit_version: 9.5.20
