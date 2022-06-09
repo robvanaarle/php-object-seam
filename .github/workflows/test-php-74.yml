@@ -1,4 +1,4 @@
-name: Build and test - PHP 7.4
+name: Test - PHP 7.4
 on:
   push:
   pull_request:
@@ -6,8 +6,8 @@ on:
     branches: [main]
 
 jobs:
-  call-build-and-test:
-    uses: ./.github/workflows/build-and-test.yml
+  call-test:
+    uses: ./.github/workflows/test.yml
     with:
       php_version: 7.4
       phpunit_version: 9.5.20

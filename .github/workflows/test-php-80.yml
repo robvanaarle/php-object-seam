@@ -1,4 +1,4 @@
-name: Build and test - PHP 8.0
+name: Test - PHP 8.0
 on:
   push:
   pull_request:
@@ -6,8 +6,8 @@ on:
     branches: [main]
 
 jobs:
-  call-build-and-test:
-    uses: ./.github/workflows/build-and-test.yml
+  call-test:
+    uses: ./.github/workflows/test.yml
     with:
       php_version: 8.0
       phpunit_version: 9.5.20
