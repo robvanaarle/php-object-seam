@@ -1,0 +1,28 @@
+name: Build and test
+
+on:
+  workflow_call:
+    inputs:
+      phpunit_version:
+        required: true
+        type: string
+      php_version:
+        required: true
+        type: string
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: php-actions/composer@v6
+
+      - name: Run tests
+        uses: php-actions/phpunit@v3
+        with:
+          php_version: ${{ inputs.php_version }}
+          version: ${{ inputs.phpunit_version }}

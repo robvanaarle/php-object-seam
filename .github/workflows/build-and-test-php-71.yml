@@ -1,4 +1,4 @@
-name: Build and test - PHP 7.0
+name: Build and test - PHP 7.1
 on:
   push:
   pull_request:
@@ -9,5 +9,5 @@ jobs:
   call-build-and-test:
     uses: ./.github/workflows/build-and-test.yml
     with:
-      php_version: 7.0
-      phpunit_version: 6.5.14
+      php_version: 7.1
+      phpunit_version: 7.5.20
