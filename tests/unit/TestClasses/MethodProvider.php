@@ -118,7 +118,7 @@ class MethodProvider
                     'method'
                 ],[
                     \PHPObjectSeam\TestClasses\ArgumentSignatures\ConstructorPropertyPromotion::class,
-                    'public function __construct(?string $arg = null)',
+                    'public function __construct(public ?string $arg = null)',
                     '__construct'
                 ],[
                     \PHPObjectSeam\TestClasses\ResultSignatures\MixedResult::class,
@@ -139,9 +139,17 @@ class MethodProvider
         if (PHP_VERSION_ID >= 80100) {
             $methods = array_merge($methods, [
                 [
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\NewObject::class,
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\Intersection::class,
+                    'public function method(\Iterator&\Countable $arg)',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\InInitializer::class,
                     'public function method(\DateTime $arg = new \DateTime)',
                     'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\ReadonlyProperty::class,
+                    'public function __construct(public readonly string $arg)',
+                    '__construct'
                 ],[
                     \PHPObjectSeam\TestClasses\ResultSignatures\NeverResult::class,
                     'public function method(): never',
@@ -153,6 +161,44 @@ class MethodProvider
                 ],[
                     \PHPObjectSeam\TestClasses\ResultSignatures\StaticResult::class,
                     'public function method(): static',
+                    'method'
+                ],
+            ]);
+        }
+
+        if (PHP_VERSION_ID >= 80200) {
+            $methods = array_merge($methods, [
+                [
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\TrueType::class,
+                    'public function method(true $arg)',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\FalseType::class,
+                    'public function method(false $arg)',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\NullType::class,
+                    'public function method(null $arg)',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ArgumentSignatures\DNF::class,
+                    'public function method((\Iterator&\Countable)|null $arg)',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ResultSignatures\TrueResult::class,
+                    'public function method(): true',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ResultSignatures\FalseResult::class,
+                    'public function method(): false',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ResultSignatures\NullResult::class,
+                    'public function method(): null',
+                    'method'
+                ],[
+                    \PHPObjectSeam\TestClasses\ResultSignatures\DNFResult::class,
+                    'public function method(): (\Iterator&\Countable)|null',
                     'method'
                 ],
             ]);

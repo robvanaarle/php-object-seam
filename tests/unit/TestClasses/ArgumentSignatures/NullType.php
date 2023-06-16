@@ -2,9 +2,9 @@
 
 namespace PHPObjectSeam\TestClasses\ArgumentSignatures;
 
-class NewObject
+class NullType
 {
-    public function method(\DateTime $arg = new \DateTime())
+    public function method(null $arg)
     {
     }
 }

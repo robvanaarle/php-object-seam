@@ -37,7 +37,14 @@ class CodeBuilder
 
     protected function getObjectSeamDefinition(): string
     {
-        return "class {$this->objectSeamClass} extends {$this->class} implements " . ObjectSeam::class;
+        $reflectionClass = new ReflectionClass($this->class);
+
+        $readonly = '';
+        if (method_exists($reflectionClass, 'isReadOnly') && $reflectionClass->isReadOnly()) {
+            $readonly = 'readonly ';
+        }
+
+        return "{$readonly}class {$this->objectSeamClass} extends {$this->class} implements " . ObjectSeam::class;
     }
 
     protected function getMethods(): array
