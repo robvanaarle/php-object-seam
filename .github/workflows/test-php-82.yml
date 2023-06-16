@@ -1,4 +1,4 @@
-name: Test - PHP 8.1
+name: Test - PHP 8.2
 on:
   push:
   pull_request:
