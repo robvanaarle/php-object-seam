@@ -1,5 +1,6 @@
 <?php
 
+//phpcs:disable
 namespace PHPObjectSeam\TestClasses;
 
 readonly class ReadonlyCUT

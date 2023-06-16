@@ -4,7 +4,8 @@ namespace PHPObjectSeam\TestClasses\ResultSignatures;
 
 class DNFResult
 {
-    public function method(): (\Iterator&\Countable)|null
+    //phpcs:disable PSR12.Functions.ReturnTypeDeclaration.SpaceBeforeReturnType
+    public function method(): (\Iterator & \Countable) | null
     {
     }
 }
