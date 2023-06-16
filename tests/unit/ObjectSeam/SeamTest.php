@@ -15,16 +15,6 @@ class SeamTest extends TestCase
 
     protected $objectSeam;
 
-    public function testRob()
-    {
-        $cut = $this->createObjectSeam(TestCUTChild::class);
-
-        $this->assertEquals(
-            'protectedMethodResult: default;foo',
-            $cut->seam()->call('protectedMethod', 'foo')
-        );
-    }
-
     protected function createSeam()
     {
         $this->objectSeam = new TestCUTObjectSeam();

@@ -4,6 +4,7 @@ namespace PHPObjectSeam\ObjectSeam;
 
 use PHPObjectSeam\ObjectSeam;
 use PHPObjectSeam\TestClasses\AbstractCUT;
+use PHPObjectSeam\TestClasses\ReadonlyCUT;
 use PHPObjectSeam\TestClasses\TestCUT;
 use PHPUnit\Framework\TestCase;
 
@@ -52,11 +53,27 @@ class BuilderTest extends TestCase
         $this->assertEquals('protectedStaticMethodResult: default;foo', $cut::callProtectedStaticMethod('foo'));
     }
 
-    public function testObjectSeamCanBeCreatedOfAbstractClassWithAbstractMethods()
+    public function provideCUTClasses(): array
     {
-        $builder = new Builder(AbstractCUT::class);
+        $classes = [
+            [AbstractCUT::class],
+        ];
+
+        if (PHP_VERSION_ID >= 80200) {
+            $classes[] = [ReadonlyCUT::class];
+        }
+
+        return $classes;
+    }
+
+    /**
+     * @dataProvider provideCUTClasses
+     */
+    public function testObjectSeamCanBeCreatedForClass(string $class)
+    {
+        $builder = new Builder($class);
         $objectSeam = $builder->build();
 
-        $this->assertInstanceOf(AbstractCUT::class, $objectSeam);
+        $this->assertInstanceOf($class, $objectSeam);
     }
 }

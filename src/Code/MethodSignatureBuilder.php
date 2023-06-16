@@ -6,6 +6,7 @@ use Reflection;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
+use ReflectionProperty;
 use ReflectionType;
 
 class MethodSignatureBuilder
@@ -38,16 +39,34 @@ class MethodSignatureBuilder
     ): array {
         $parameters = [];
         foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
-            $parameters[] = $this->getParameterSignature($reflectionParameter, $reflectionClass);
+            $parameters[] = $this->getParameterSignature($reflectionParameter, $reflectionMethod, $reflectionClass);
         }
         return $parameters;
     }
 
     protected function getParameterSignature(
         ReflectionParameter $reflectionParameter,
+        ReflectionMethod $reflectionMethod,
         ReflectionClass $reflectionClass
     ): string {
         $definition = [];
+
+        if ($reflectionMethod->getShortName() == '__construct') {
+            $reflectionProperty = $this->findClassProperty($reflectionParameter->getName(), $reflectionClass);
+            if ($reflectionProperty !== null && $reflectionProperty->isPromoted()) {
+                if ($reflectionProperty->isPublic()) {
+                    $definition[] = 'public';
+                } elseif ($reflectionProperty->isProtected()) {
+                    $definition[] = 'protected';
+                } elseif ($reflectionProperty->isPrivate()) {
+                    $definition[] = 'private';
+                }
+
+                if ($reflectionProperty->isReadOnly()) {
+                    $definition[] = 'readonly';
+                }
+            }
+        }
 
         if ($reflectionParameter->hasType()) {
             $definition[] = $this->getType($reflectionParameter->getType(), $reflectionClass);
@@ -84,10 +103,23 @@ class MethodSignatureBuilder
         return implode(' ', $definition);
     }
 
+    protected function findClassProperty(string $name, ReflectionClass $reflectionClass)
+    {
+        $reflectionProperty = null;
+        while ($reflectionClass && !$reflectionProperty) {
+            $reflectionProperty = $reflectionClass->hasProperty($name)
+                ? $reflectionClass->getProperty($name)
+                : null;
+            $reflectionClass = $reflectionClass->getParentClass();
+        }
+        return $reflectionProperty;
+    }
+
     protected function getType(
         ReflectionType $reflectionType,
         ReflectionClass $reflectionClass,
-        bool $suppressNull = false
+        bool $suppressNull = false,
+        bool $addIntersectionBrackets = false
     ): string {
         if (!class_exists(\ReflectionNamedType::class)) {
             $type = $this->getFQType($reflectionType, $reflectionClass);
@@ -96,23 +128,27 @@ class MethodSignatureBuilder
         } elseif ($reflectionType instanceof \ReflectionNamedType) {
             $type = $this->getFQType($reflectionType, $reflectionClass);
 
-            if (!$suppressNull && $type !== 'mixed' && $reflectionType->allowsNull()) {
+            if (!$suppressNull && $type !== 'mixed' && $type !== 'null' && $reflectionType->allowsNull()) {
                 $type = '?' . $type;
             }
 
             return $type;
         } elseif ($reflectionType instanceof \ReflectionUnionType) {
-            $types = array_map(function (\ReflectionNamedType $reflectionNamedType) use ($reflectionClass) {
-                return $this->getType($reflectionNamedType, $reflectionClass, true);
+            $types = array_map(function (\ReflectionType $reflectionType) use ($reflectionClass) {
+                return $this->getType($reflectionType, $reflectionClass, true, true);
             }, $reflectionType->getTypes());
 
             return implode('|', $types);
         } elseif ($reflectionType instanceof \ReflectionIntersectionType) {
-            $types = array_map(function (\ReflectionNamedType $reflectionNamedType) use ($reflectionClass) {
-                return $this->getType($reflectionNamedType, $reflectionClass, true);
+            $types = array_map(function (\ReflectionType $reflectionType) use ($reflectionClass) {
+                return $this->getType($reflectionType, $reflectionClass, true, true);
             }, $reflectionType->getTypes());
 
-            return implode('&', $types);
+            $type = implode('&', $types);
+            if ($addIntersectionBrackets) {
+                $type = '(' . $type . ')';
+            }
+            return $type;
         } else {
             throw new \Exception('Unknown ReflectionType: ' . get_class($reflectionType));
         }
