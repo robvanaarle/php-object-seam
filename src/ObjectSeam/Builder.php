@@ -7,8 +7,18 @@ use ReflectionClass;
 
 class Builder
 {
+    /**
+     * @template TSeamedObject
+     *
+     * @phpstan-var class-string<TSeamedObject> $class
+     */
     protected $class;
 
+    /**
+     * @template TSeamedObject
+     *
+     * @phpstan-param class-string<TSeamedObject> $class
+     */
     public function __construct(string $class)
     {
         $this->class = $class;
@@ -22,6 +32,11 @@ class Builder
         return $seamClass;
     }
 
+    /**
+     * @template TSeamedObject
+     * @phpstan-param class-string<TSeamedObject> $class
+     * @phpstan-return ObjectSeam<TSeamedObject>
+     */
     public function build(): ObjectSeam
     {
         $seamClass = $this->buildObjectSeamClass();
