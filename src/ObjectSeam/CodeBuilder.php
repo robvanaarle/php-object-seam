@@ -98,7 +98,7 @@ class CodeBuilder
         $reflectionType = $reflectionMethod->getReturnType();
 
         $type = 'other';
-        if (!class_exists(\ReflectionNamedType::class)) {
+        if (!class_exists(\ReflectionNamedType::class, false)) {
             $type = (string)$reflectionType;
         } elseif ($reflectionType instanceof \ReflectionNamedType) {
             $type = $reflectionType->getName();
