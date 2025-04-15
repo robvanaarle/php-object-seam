@@ -62,7 +62,7 @@ class MethodSignatureBuilder
                     $definition[] = 'private';
                 }
 
-                if ($reflectionProperty->isReadOnly()) {
+                if (PHP_VERSION_ID >= 80100 && $reflectionProperty->isReadOnly()) {
                     $definition[] = 'readonly';
                 }
             }
