@@ -7,7 +7,7 @@ use PHPObjectSeam\Exception;
 use PHPObjectSeam\ObjectSeam;
 use ReflectionMethod;
 
-class Seam
+final class Seam
 {
     protected $objectSeam;
     protected $classSeam;
