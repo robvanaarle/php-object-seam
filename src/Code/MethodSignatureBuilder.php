@@ -64,7 +64,8 @@ class MethodSignatureBuilder
                     $definition[] = 'private';
                 }
 
-                if (PHP_VERSION_ID >= 80100 && $reflectionProperty->isReadOnly()) {
+                // isReadOnly() is only available in PHP 8.1 and later, but promoted properties are available in PHP 8.0
+                if (method_exists($reflectionProperty, 'isReadOnly') && $reflectionProperty->isReadOnly()) {
                     $definition[] = 'readonly';
                 }
             }
