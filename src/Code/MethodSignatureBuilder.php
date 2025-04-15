@@ -53,7 +53,9 @@ class MethodSignatureBuilder
 
         if ($reflectionMethod->getShortName() == '__construct') {
             $reflectionProperty = $this->findClassProperty($reflectionParameter->getName(), $reflectionClass);
-            if ($reflectionProperty !== null && $reflectionProperty->isPromoted()) {
+            // $reflectionProperty is null when the parameter is not a class property, so checking if isPromoted() is
+            // true is not needed
+            if ($reflectionProperty !== null) {
                 if ($reflectionProperty->isPublic()) {
                     $definition[] = 'public';
                 } elseif ($reflectionProperty->isProtected()) {
@@ -62,7 +64,8 @@ class MethodSignatureBuilder
                     $definition[] = 'private';
                 }
 
-                if ($reflectionProperty->isReadOnly()) {
+                // isReadOnly() is only available in PHP 8.1 and later, but promoted properties are available in PHP 8.0
+                if (method_exists($reflectionProperty, 'isReadOnly') && $reflectionProperty->isReadOnly()) {
                     $definition[] = 'readonly';
                 }
             }
@@ -121,7 +124,7 @@ class MethodSignatureBuilder
         bool $suppressNull = false,
         bool $addIntersectionBrackets = false
     ): string {
-        if (!class_exists(\ReflectionNamedType::class)) {
+        if (!class_exists(\ReflectionNamedType::class, false)) {
             $type = $this->getFQType($reflectionType, $reflectionClass);
 
             return $type;
@@ -156,7 +159,7 @@ class MethodSignatureBuilder
 
     protected function getFQType(ReflectionType $reflectionType, ReflectionClass $reflectionClass): string
     {
-        if (!class_exists(\ReflectionNamedType::class)) {
+        if (!class_exists(\ReflectionNamedType::class, false)) {
             $fqType = (string)$reflectionType;
         } elseif ($reflectionType instanceof \ReflectionNamedType) {
             $fqType = $reflectionType->getName();
