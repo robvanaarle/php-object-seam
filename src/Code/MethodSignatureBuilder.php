@@ -53,7 +53,9 @@ class MethodSignatureBuilder
 
         if ($reflectionMethod->getShortName() == '__construct') {
             $reflectionProperty = $this->findClassProperty($reflectionParameter->getName(), $reflectionClass);
-            if ($reflectionProperty !== null && $reflectionProperty->isPromoted()) {
+            // $reflectionProperty is null when the parameter is not a class property, so checking if isPromoted() is
+            // true is not needed
+            if ($reflectionProperty !== null) {
                 if ($reflectionProperty->isPublic()) {
                     $definition[] = 'public';
                 } elseif ($reflectionProperty->isProtected()) {
