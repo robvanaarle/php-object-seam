@@ -124,7 +124,7 @@ class MethodSignatureBuilder
         bool $suppressNull = false,
         bool $addIntersectionBrackets = false
     ): string {
-        if (!class_exists(\ReflectionNamedType::class)) {
+        if (!class_exists(\ReflectionNamedType::class, false)) {
             $type = $this->getFQType($reflectionType, $reflectionClass);
 
             return $type;
@@ -159,7 +159,7 @@ class MethodSignatureBuilder
 
     protected function getFQType(ReflectionType $reflectionType, ReflectionClass $reflectionClass): string
     {
-        if (!class_exists(\ReflectionNamedType::class)) {
+        if (!class_exists(\ReflectionNamedType::class, false)) {
             $fqType = (string)$reflectionType;
         } elseif ($reflectionType instanceof \ReflectionNamedType) {
             $fqType = $reflectionType->getName();
