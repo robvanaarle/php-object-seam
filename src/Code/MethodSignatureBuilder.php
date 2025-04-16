@@ -6,7 +6,6 @@ use Reflection;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
-use ReflectionProperty;
 use ReflectionType;
 
 class MethodSignatureBuilder
@@ -136,13 +135,16 @@ class MethodSignatureBuilder
             }
 
             return $type;
-        } elseif ($reflectionType instanceof \ReflectionUnionType) {
+        } elseif (class_exists(\ReflectionUnionType::class) && $reflectionType instanceof \ReflectionUnionType) {
             $types = array_map(function (\ReflectionType $reflectionType) use ($reflectionClass) {
                 return $this->getType($reflectionType, $reflectionClass, true, true);
             }, $reflectionType->getTypes());
 
             return implode('|', $types);
-        } elseif ($reflectionType instanceof \ReflectionIntersectionType) {
+        } elseif (
+            class_exists(\ReflectionIntersectionType::class)
+            && $reflectionType instanceof \ReflectionIntersectionType
+        ) {
             $types = array_map(function (\ReflectionType $reflectionType) use ($reflectionClass) {
                 return $this->getType($reflectionType, $reflectionClass, true, true);
             }, $reflectionType->getTypes());

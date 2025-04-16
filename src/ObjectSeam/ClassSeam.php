@@ -6,7 +6,7 @@ use Closure;
 use ReflectionMethod;
 use PHPObjectSeam\Exception;
 
-class ClassSeam
+final class ClassSeam
 {
     public $objectSeamClass;
     protected $overrides = [];

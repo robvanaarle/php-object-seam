@@ -5,19 +5,18 @@ namespace PHPObjectSeam\ObjectSeam;
 use PHPObjectSeam\ObjectSeam;
 use ReflectionClass;
 
+/**
+ * @template TSeamedObject of object
+ */
 class Builder
 {
     /**
-     * @template TSeamedObject
-     *
-     * @phpstan-var class-string<TSeamedObject> $class
+     * @var class-string<TSeamedObject> $class
      */
     protected $class;
 
     /**
-     * @template TSeamedObject
-     *
-     * @phpstan-param class-string<TSeamedObject> $class
+     * @param class-string<TSeamedObject> $class
      */
     public function __construct(string $class)
     {
@@ -33,9 +32,7 @@ class Builder
     }
 
     /**
-     * @template TSeamedObject
-     * @phpstan-param class-string<TSeamedObject> $class
-     * @phpstan-return ObjectSeam<TSeamedObject>
+     * @return ObjectSeam&TSeamedObject
      */
     public function build(): ObjectSeam
     {
@@ -52,7 +49,7 @@ class Builder
         $reflectionClass = new ReflectionClass($this->class);
 
         do {
-            $seamClass = '__PHPObjectSeam_ObjectSeam_' . md5(rand()) . '_' . $reflectionClass->getShortName();
+            $seamClass = '__PHPObjectSeam_ObjectSeam_' . md5((string)rand()) . '_' . $reflectionClass->getShortName();
         } while (class_exists($seamClass, false));
 
         return $seamClass;

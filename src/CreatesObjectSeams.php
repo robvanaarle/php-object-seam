@@ -7,9 +7,9 @@ use PHPObjectSeam\ObjectSeam\Builder;
 trait CreatesObjectSeams
 {
     /**
-     * @template TSeamedObject
-     * @phpstan-param class-string<TSeamedObject> $class
-     * @phpstan-return ObjectSeam<TSeamedObject>
+     * @template TSeamedObject of object
+     * @param class-string<TSeamedObject> $class
+     * @return ObjectSeam&TSeamedObject
      */
     public function createObjectSeam(string $class): ObjectSeam
     {
