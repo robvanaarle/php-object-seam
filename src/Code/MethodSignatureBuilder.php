@@ -141,7 +141,10 @@ class MethodSignatureBuilder
             }, $reflectionType->getTypes());
 
             return implode('|', $types);
-        } elseif (class_exists(\ReflectionIntersectionType::class) && $reflectionType instanceof \ReflectionIntersectionType) {
+        } elseif (
+            class_exists(\ReflectionIntersectionType::class)
+            && $reflectionType instanceof \ReflectionIntersectionType
+        ) {
             $types = array_map(function (\ReflectionType $reflectionType) use ($reflectionClass) {
                 return $this->getType($reflectionType, $reflectionClass, true, true);
             }, $reflectionType->getTypes());
