@@ -26,7 +26,7 @@ class CodeBuilderTest extends TestCase
      */
     public function testCodeIsValid(string $class, string $signature, string $function)
     {
-        $objectSeamClass = 'TestClass' . md5(rand());
+        $objectSeamClass = 'TestClass' . md5((string)rand());
         $builder = new CodeBuilder($objectSeamClass, $class);
         $code = $builder->build();
 

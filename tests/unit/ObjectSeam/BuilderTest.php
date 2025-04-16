@@ -60,6 +60,8 @@ class BuilderTest extends TestCase
         ];
 
         if (PHP_VERSION_ID >= 80200) {
+            /* For some reason, PHPStan can't find this class */
+            /* @phpstan-ignore class.notFound */
             $classes[] = [ReadonlyCUT::class];
         }
 

@@ -49,7 +49,7 @@ class Builder
         $reflectionClass = new ReflectionClass($this->class);
 
         do {
-            $seamClass = '__PHPObjectSeam_ObjectSeam_' . md5(rand()) . '_' . $reflectionClass->getShortName();
+            $seamClass = '__PHPObjectSeam_ObjectSeam_' . md5((string)rand()) . '_' . $reflectionClass->getShortName();
         } while (class_exists($seamClass, false));
 
         return $seamClass;

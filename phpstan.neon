@@ -1,5 +1,9 @@
 parameters:
 	phpVersion: 70100
-	level: 1
+	level: 5
 	paths:
 		- src
+		- tests
+	excludePaths:
+		analyseAndScan:
+			- tests/unit/TestClasses/* # PHPstan runs for php 7.1, this directory also contains code for newer versions

@@ -132,6 +132,8 @@ class SeamTest extends TestCase
 
         $this->objectSeam->value = 'before custom constructor';
         $seam->customConstruct(function ($value) {
+            /* $this refers to the object seam, not this test class as PHPstan thinks */
+            /* @phpstan-ignore property.notFound */
             $this->value = 'custom constructor: ' . $value;
         }, 'foo');
 
@@ -156,6 +158,8 @@ class SeamTest extends TestCase
 
         $this->objectSeam->value = 'before custom constructor';
         $seam->setCustomConstructor(function ($value) {
+            /* $this refers to the object seam, not this test class as PHPstan thinks */
+            /* @phpstan-ignore property.notFound */
             $this->value = 'custom constructor: ' . $value;
         });
 
