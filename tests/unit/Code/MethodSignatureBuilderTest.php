@@ -19,7 +19,30 @@ class MethodSignatureBuilderTest extends TestCase
      */
     public function testMethodSignature(string $class, string $method, string $expectedSignature)
     {
-        $reflectionMethod = new ReflectionMethod($class, $method);
+        // Suppress deprecated warnings for methods that use deprecated features, e.g.
+        // public function method(int $arg = null) in PHP 8.4 (should be ?int $arg = null)
+        // This package is for legacy code, so we need to support such cases in the tests.
+
+        // Suppress deprecations with a custom error handler for just the duration of the ReflectionMethod creation.
+        // Setting error reporting level without E_DEPRECATED does not work, as the PHPUnit error handler does not
+        // respect the error reporting level.
+        $previousErrorHandler = set_error_handler(
+            function ($severity, $message, $file, $line) use (&$previousErrorHandler) {
+                if ($severity & E_DEPRECATED) {
+                    // Ignore deprecated warnings
+                    return true;
+                }
+                return $previousErrorHandler ? $previousErrorHandler($severity, $message, $file, $line) : false;
+            }
+        );
+
+        try {
+            $reflectionMethod = new ReflectionMethod($class, $method);
+        } finally {
+            // Remove custom error handler
+            restore_error_handler();
+        }
+
         $builder = new MethodSignatureBuilder();
 
         $this->assertEquals($expectedSignature, $builder->build($reflectionMethod));

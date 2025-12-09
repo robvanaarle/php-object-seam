@@ -10,4 +10,4 @@ jobs:
     uses: ./.github/workflows/test.yml
     with:
       php_version: 8.2
-      phpunit_version: 9.5.20
+      phpunit_version: 10.5.60
