@@ -158,6 +158,19 @@ class MethodProvider
                 '_minPHPVersionId' => 80000,
             ],
             [
+                \PHPObjectSeam\TestClasses\ArgumentSignatures\Attribute::class,
+                'method',
+                "public function method(\n"
+                . "#[AttributeWithoutParams]\n"
+                . "#[AttributeWithParams('value', 123, NULL, true, false, array (\n"
+                . "  0 => 1,\n"
+                . "  1 => 2,\n"
+                . "  2 => 3,\n"
+                . "))]\n"
+                . '$param): void',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
                 \PHPObjectSeam\TestClasses\ResultSignatures\MixedResult::class,
                 'method',
                 'public function method(): mixed',

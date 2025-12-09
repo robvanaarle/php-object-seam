@@ -27,34 +27,34 @@ class MethodDeclarationBuilder
         $definition = Reflection::getModifierNames($modifiers);
         $definition[] = 'function';
 
-        $parameterSignatures = implode(', ', $this->getParameterSignatures($reflectionMethod, $reflectionClass));
-        $functionSignature = $reflectionMethod->getShortName() . '(' . $parameterSignatures . ')';
+        $parameterDeclarations = implode(', ', $this->getParameterDeclarations($reflectionMethod, $reflectionClass));
+        $methodDeclaration = $reflectionMethod->getShortName() . '(' . $parameterDeclarations . ')';
 
         if ($reflectionMethod->hasReturnType()) {
-            $functionSignature .= ': ';
-            $functionSignature .= $this->getType($reflectionMethod->getReturnType(), $reflectionClass);
+            $methodDeclaration .= ': ';
+            $methodDeclaration .= $this->getType($reflectionMethod->getReturnType(), $reflectionClass);
         }
-        $definition[] = $functionSignature;
+        $definition[] = $methodDeclaration;
 
-        $signature = implode(' ', $definition);
+        $declaration = implode(' ', $definition);
 
         $attributes = $this->getMethodAttributes($reflectionMethod);
 
-        return implode("\n", array_merge($attributes, [$signature]));
+        return implode("\n", array_merge($attributes, [$declaration]));
     }
 
-    protected function getParameterSignatures(
+    protected function getParameterDeclarations(
         ReflectionMethod $reflectionMethod,
         ReflectionClass $reflectionClass
     ): array {
         $parameters = [];
         foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
-            $parameters[] = $this->getParameterSignature($reflectionParameter, $reflectionMethod, $reflectionClass);
+            $parameters[] = $this->getParameterDeclaration($reflectionParameter, $reflectionMethod, $reflectionClass);
         }
         return $parameters;
     }
 
-    protected function getParameterSignature(
+    protected function getParameterDeclaration(
         ReflectionParameter $reflectionParameter,
         ReflectionMethod $reflectionMethod,
         ReflectionClass $reflectionClass
@@ -113,7 +113,15 @@ class MethodDeclarationBuilder
             }
         }
 
-        return implode(' ', $definition);
+        $signature = implode(' ', $definition);
+
+        $attributes = $this->getParameterAttributes($reflectionParameter);
+        if (count($attributes) == - 0) {
+            return $signature;
+        }
+
+        $attributes[] = $signature;
+        return "\n" . implode("\n", $attributes);
     }
 
     protected function findClassProperty(string $name, ReflectionClass $reflectionClass)
@@ -204,6 +212,21 @@ class MethodDeclarationBuilder
 
         $lines = [];
         foreach ($method->getAttributes() as $attribute) {
+            $lines[] = $this->attributeBuilder->build($attribute);
+        }
+
+        return $lines;
+    }
+
+    protected function getParameterAttributes(ReflectionParameter $parameter): array
+    {
+        // getAttributes is only available in PHP 8.0 and later
+        if (!method_exists($parameter, 'getAttributes')) {
+            return [];
+        }
+
+        $lines = [];
+        foreach ($parameter->getAttributes() as $attribute) {
             $lines[] = $this->attributeBuilder->build($attribute);
         }
 
