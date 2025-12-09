@@ -82,7 +82,12 @@ final class Seam
             return $this->overrides[$function]->bindTo($this->objectSeam, $this->objectSeam);
         }
         $reflectionMethod = $this->getReflectionMethod($function);
-        $reflectionMethod->setAccessible(true);
+
+        if (PHP_VERSION_ID < 80200) {
+            // As of PHP 8.1.0, calling this method has no effect; all methods are invokable by default.
+            // This function has been DEPRECATED as of PHP 8.5.0
+            $reflectionMethod->setAccessible(true);
+        }
 
         return $reflectionMethod->getClosure($this->objectSeam);
     }
