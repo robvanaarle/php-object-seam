@@ -2,6 +2,7 @@
 
 namespace PHPObjectSeam\Code;
 
+use PHPObjectSeam\Exception;
 use Reflection;
 use ReflectionClass;
 use ReflectionMethod;

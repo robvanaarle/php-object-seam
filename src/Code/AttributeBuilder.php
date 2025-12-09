@@ -6,12 +6,12 @@ use PHPObjectSeam\Exception;
 
 class AttributeBuilder
 {
-    /** @phpstan-ignore-next-line */
+    /* @phpstan-ignore class.notFound */
     public function build(\ReflectionAttribute $attribute): string
     {
-        /** @phpstan-ignore-next-line */
+        /* @phpstan-ignore class.notFound */
         $name = $attribute->getName();
-        /** @phpstan-ignore-next-line */
+        /* @phpstan-ignore class.notFound */
         $args = $attribute->getArguments();
 
         if (!empty($args)) {

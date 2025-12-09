@@ -4,9 +4,11 @@ namespace PHPObjectSeam\ObjectSeam;
 
 use PHPObjectSeam\CreatesObjectSeams;
 use PHPObjectSeam\Exception;
-use PHPObjectSeam\TestClasses\TestCUTChild;
 use PHPObjectSeam\TestClasses\TestCUTChildObjectSeam;
 use PHPObjectSeam\TestClasses\TestCUTObjectSeam;
+use PHPObjectSeam\TestClasses\TestCUTPropertyHooks;
+use PHPObjectSeam\TestClasses\TestCUTPropertyHooksChildObjectSeam;
+use PHPObjectSeam\TestClasses\TestCUTPropertyHooksObjectSeam;
 use PHPUnit\Framework\TestCase;
 
 class SeamTest extends TestCase
@@ -200,5 +202,68 @@ class SeamTest extends TestCase
 
         $seam = $this->createSeam();
         $seam->captureCalls('publicStaticMethod');
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPublicPropertyHooksCanBeCalled()
+    {
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->callPropertyHookSet('publicX', 10);
+        $this->assertEquals(60, $seam->callPropertyHookGet('publicX'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPublicPropertyHooksInParentCanBeCalled()
+    {
+        $objectSeam = new TestCUTPropertyHooksChildObjectSeam();
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooksChildObjectSeam::class));
+
+        $seam->callPropertyHookSet('publicX', 10);
+        $this->assertEquals(60, $seam->callPropertyHookGet('publicX'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testProtectedPropertyHooksCanBeCalled()
+    {
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->callPropertyHookSet('protectedX', 10);
+        $this->assertEquals(15, $seam->callPropertyHookGet('protectedX'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testProtectedPropertyHooksInParentCanBeCalled()
+    {
+        $objectSeam = new TestCUTPropertyHooksChildObjectSeam();
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooksChildObjectSeam::class));
+
+        $seam->callPropertyHookSet('protectedX', 10);
+        $this->assertEquals(15, $seam->callPropertyHookGet('protectedX'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPrivatePropertyHooksCanBeCalled()
+    {
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->callPropertyHookSet('privateX', 10);
+        $this->assertEquals(5, $seam->callPropertyHookGet('privateX'));
     }
 }

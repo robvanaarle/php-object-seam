@@ -17,6 +17,7 @@ As legacy code often runs on older PHP versions, this package aims to support as
 ## Features
 - Call protected and private methods
 - Call protected static methods
+- Call protected and private property hooks
 - Override public and protected methods
 - Override public and protected static methods
 - Instantiate an object with a custom constructor
@@ -75,6 +76,15 @@ This can be used for 'Subclass and make public'.
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $result = $foo->seam()->callStatic('protectedStaticMethod', $arg1, $arg2);
+```
+
+This can be used for 'Subclass and make public'.
+
+### Call non-public property hook
+```php
+$foo = $this->createObjectSeam(Foo::class);  
+$foo->seam()->callPropertyHookSet('nonPublicProperty', $arg1);
+$result = $foo->seam()->callPropertyHookGet('nonPublicProperty');
 ```
 
 This can be used for 'Subclass and make public'.

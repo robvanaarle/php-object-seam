@@ -4,6 +4,7 @@ namespace PHPObjectSeam\ObjectSeam;
 
 use PHPObjectSeam\ObjectSeam;
 use PHPObjectSeam\TestClasses\AbstractCUT;
+use PHPObjectSeam\TestClasses\PropertyHookCUT;
 use PHPObjectSeam\TestClasses\ReadonlyCUT;
 use PHPObjectSeam\TestClasses\TestCUT;
 use PHPUnit\Framework\TestCase;
@@ -53,6 +54,55 @@ class BuilderTest extends TestCase
         $this->assertEquals('protectedStaticMethodResult: default;foo', $cut::callProtectedStaticMethod('foo'));
     }
 
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPublicPropertyHookInvocationsExecutesOriginals()
+    {
+        /* @phpstan-ignore class.notFound */
+        $builder = new Builder(PropertyHookCUT::class);
+        $cut = $builder->build();
+
+        // ingnore class.notFound does not work?!?!
+        /* @phpstan-ignore-next-line */
+        $cut->publicX = 10;
+
+        /* @phpstan-ignore class.notFound */
+        $this->assertEquals(60, $cut->publicX);
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testProtectedPropertyHookInvocationsExecutesOriginals()
+    {
+        /* @phpstan-ignore class.notFound */
+        $builder = new Builder(PropertyHookCUT::class);
+        $cut = $builder->build();
+
+        /* @phpstan-ignore class.notFound */
+        $cut->callPropertyHookSet('protectedX', 10);
+
+        /* @phpstan-ignore class.notFound */
+        $this->assertEquals(15, $cut->callPropertyHookGet('protectedX'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPrivatePropertyHookInvocationsExecutesOriginals()
+    {
+        /* @phpstan-ignore class.notFound */
+        $builder = new Builder(PropertyHookCUT::class);
+        $cut = $builder->build();
+
+        /* @phpstan-ignore class.notFound */
+        $cut->callPropertyHookSet('privateX', 10);
+
+        /* @phpstan-ignore class.notFound */
+        $this->assertEquals(5, $cut->callPropertyHookGet('privateX'));
+    }
+
     public static function provideCUTClasses(): array
     {
         $classes = [
@@ -60,7 +110,6 @@ class BuilderTest extends TestCase
         ];
 
         if (PHP_VERSION_ID >= 80200) {
-            /* For some reason, PHPStan can't find this class */
             /* @phpstan-ignore class.notFound */
             $classes[] = [ReadonlyCUT::class];
         }

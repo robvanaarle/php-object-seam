@@ -92,6 +92,34 @@ final class Seam
         return $reflectionMethod->getClosure($this->objectSeam);
     }
 
+    public function callPropertyHookGet(string $property)
+    {
+        if (!class_exists('\PropertyHookType')) {
+            throw new Exception(
+                'Property hooks are not supported in this PHP version. ' .
+                'Make sure you are using a PHP version that supports Property Hooks.'
+            );
+        }
+
+        $reflectionMethod = $this->getReflectionHook($property, \PropertyHookType::Get);
+        $closure = $reflectionMethod->getClosure($this->objectSeam);
+        return $closure();
+    }
+
+    public function callPropertyHookSet(string $property, $arg)
+    {
+        if (!class_exists('\PropertyHookType')) {
+            throw new Exception(
+                'Property hooks are not supported in this PHP version. ' .
+                'Make sure you are using a PHP version that supports Property Hooks.'
+            );
+        }
+
+        $reflectionMethod = $this->getReflectionHook($property, \PropertyHookType::Set);
+        $closure = $reflectionMethod->getClosure($this->objectSeam);
+        return $closure($arg);
+    }
+
     public function callConstruct(...$args)
     {
         $this->call('__construct', ...$args);
@@ -158,6 +186,14 @@ final class Seam
     {
         $reflectionMethod = new ReflectionMethod(get_parent_class($this->objectSeam), $function);
         return $reflectionMethod;
+    }
+
+    /* @phpstan-ignore class.notFound */
+    protected function getReflectionHook(string $property, \PropertyHookType $hookType): ReflectionMethod
+    {
+        $reflectionProperty = new \ReflectionProperty(get_parent_class($this->objectSeam), $property);
+        /* @phpstan-ignore method.notFound */
+        return $reflectionProperty->getHook($hookType);
     }
 
     public function overrideStatic(string $function, $resultOrClosure): self
