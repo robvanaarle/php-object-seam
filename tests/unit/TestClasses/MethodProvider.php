@@ -4,7 +4,7 @@ namespace PHPObjectSeam\TestClasses;
 
 class MethodProvider
 {
-    public function provideMethods(): array
+    public function provideSupportedMethods(): array
     {
         /**
          * Each case is an array with:
@@ -189,7 +189,20 @@ class MethodProvider
                 '_minPHPVersionId' => 80000,
             ],
             [
-                // Other attribute test cases are in AttributeBuilderTest
+                \PHPObjectSeam\TestClasses\MethodAttributes\WithoutParams::class,
+                'method',
+                "#[AttributeWithoutParams]\n"
+                . 'public function method(): void',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\ScalarParams::class,
+                'method',
+                "#[AttributeWithScalarParams('stringValue', 42, 3.14, true, false, NULL)]\n"
+                . 'public function method(): void',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
                 \PHPObjectSeam\TestClasses\MethodAttributes\ArrayParam::class,
                 'method',
                 "#[AttributeWithArrayParam(array (\n"
@@ -205,6 +218,28 @@ class MethodProvider
                 . "  ),\n"
                 . "  'six' => 6,\n"
                 . "))]\n"
+                . 'public function method(): void',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\GlobalConstantParam::class,
+                'method',
+                "#[AttributeWithGlobalConstantParam('globalValue')]\n"
+                . 'public function method(): void',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\AttributeClassNameParam::class,
+                'method',
+                "#[AttributeWithAttributeClassNameParam("
+                    . "'PHPObjectSeam\\\\TestClasses\\\\MethodAttributes\\\\AttributeClassNameParam')]\n"
+                . 'public function method(): void',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\ClassConstantParam::class,
+                'method',
+                "#[AttributeWithClassConstantParam('classValue')]\n"
                 . 'public function method(): void',
                 '_minPHPVersionId' => 80000,
             ],
@@ -298,6 +333,31 @@ class MethodProvider
             ],
         ];
 
+        return $this->filter($cases);
+    }
+
+    public function provideUnsupportedMethods(): array
+    {
+        /**
+         * Each case is an array with:
+         * - class name
+         * - method name
+         * - expected exception message substring
+         */
+        $cases = [
+            // PHP 8.5+
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\StaticClosureParam::class,
+                'method',
+                '_minPHPVersionId' => 80500,
+            ],
+        ];
+
+        return $this->filter($cases);
+    }
+
+    protected function filter(array $cases): array
+    {
         // Get cases for current PHP version only
         $cases = array_filter($cases, function ($case) {
             $min = $case['_minPHPVersionId'] ?? 70000;

@@ -18,7 +18,7 @@ class CodeBuilderTest extends TestCase
     public static function provideMethods(): array
     {
         $provider = new MethodProvider();
-        return $provider->provideMethods();
+        return $provider->provideSupportedMethods();
     }
 
     /**

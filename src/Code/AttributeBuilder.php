@@ -2,6 +2,8 @@
 
 namespace PHPObjectSeam\Code;
 
+use PHPObjectSeam\Exception;
+
 class AttributeBuilder
 {
     /** @phpstan-ignore-next-line */
@@ -16,6 +18,13 @@ class AttributeBuilder
             $argParts = [];
 
             foreach ($args as $key => $value) {
+                // objects are not supported, as it's impossible to get the original code representation
+                if (is_object($value)) {
+                    throw new Exception(
+                        "Attribute arguments of type object are not supported: (" . get_class($value) . ")"
+                    );
+                }
+
                 // Encode argument value safely
                 $encoded = var_export($value, true);
 

@@ -174,7 +174,7 @@ class MethodDeclarationBuilder
             }
             return $type;
         } else {
-            throw new \Exception('Unknown ReflectionType: ' . get_class($reflectionType));
+            throw new Exception('Unknown ReflectionType: ' . get_class($reflectionType));
         }
     }
 
@@ -185,7 +185,7 @@ class MethodDeclarationBuilder
         } elseif ($reflectionType instanceof \ReflectionNamedType) {
             $fqType = $reflectionType->getName();
         } else {
-            throw new \Exception('Invalid ReflectionType: ' . get_class($reflectionType));
+            throw new Exception('Invalid ReflectionType: ' . get_class($reflectionType));
         }
 
         if ($fqType === 'parent') {

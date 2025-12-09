@@ -2,12 +2,13 @@
 
 namespace PHPObjectSeam\Code;
 
+use PHPObjectSeam\Exception;
 use PHPUnit\Framework\TestCase;
 
 class AttributeBuilderTest extends TestCase
 {
     /**
-     * @dataProvider provideAttributes
+     * @dataProvider provideSupportedAttributes
      */
     public function testBuildAttribute(string $class, string $expectedAttribute)
     {
@@ -18,9 +19,23 @@ class AttributeBuilderTest extends TestCase
         $this->assertEquals($expectedAttribute, $builder->build($reflectionMethod->getAttributes()[0]));
     }
 
-    public static function provideAttributes()
+    /**
+     * @dataProvider provideUnsupportedAttributes
+     */
+    public function testBuildAttributeFail(string $class, string $expectedAttribute)
     {
-        $cases = [
+        static::expectException(Exception::class);
+
+        $reflectionMethod = new \ReflectionMethod($class, 'method');
+        $builder = new AttributeBuilder();
+
+        /** @phpstan-ignore-next-line */
+        $builder->build($reflectionMethod->getAttributes()[0]);
+    }
+
+    public static function provideSupportedAttributes()
+    {
+        return static::filter([
             [
                 \PHPObjectSeam\TestClasses\MethodAttributes\WithoutParams::class,
                 "#[AttributeWithoutParams]",
@@ -63,8 +78,29 @@ class AttributeBuilderTest extends TestCase
                 "#[AttributeWithClassConstantParam('classValue')]",
                 '_minPHPVersionId' => 80100,
             ],
-        ];
+        ]);
+    }
 
+    public static function provideUnsupportedAttributes()
+    {
+        return static::filter([
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\ObjectInstantiationParam::class,
+                "#[AttributeWithObjectInstantiationParam(new \\DateTime())]",
+                '_minPHPVersionId' => 80100,
+            ],
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\StaticClosureParam::class,
+                "#[AttributeWithStaticClosureParam(static function (int \$a = 42) {\n"
+                . "    return 'staticClosureValue';\n"
+                . "})]",
+                '_minPHPVersionId' => 80500,
+            ],
+        ]);
+    }
+
+    protected static function filter(array $cases): array
+    {
         // Get cases for current PHP version only
         $cases = array_filter($cases, function ($case) {
             $min = $case['_minPHPVersionId'] ?? 80000;
