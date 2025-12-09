@@ -8,7 +8,7 @@ use ReflectionMethod;
 
 class MethodSignatureBuilderTest extends TestCase
 {
-    public function provideSignatures(): array
+    public static function provideSignatures(): array
     {
         $provider = new MethodProvider();
         return $provider->provideMethods();

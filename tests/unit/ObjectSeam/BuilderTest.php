@@ -53,7 +53,7 @@ class BuilderTest extends TestCase
         $this->assertEquals('protectedStaticMethodResult: default;foo', $cut::callProtectedStaticMethod('foo'));
     }
 
-    public function provideCUTClasses(): array
+    public static function provideCUTClasses(): array
     {
         $classes = [
             [AbstractCUT::class],

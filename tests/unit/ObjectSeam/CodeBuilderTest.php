@@ -15,7 +15,7 @@ use ReflectionClass;
 
 class CodeBuilderTest extends TestCase
 {
-    public function provideMethods(): array
+    public static function provideMethods(): array
     {
         $provider = new MethodProvider();
         return $provider->provideMethods();
@@ -36,7 +36,7 @@ class CodeBuilderTest extends TestCase
         $this->assertInstanceOf($objectSeamClass, $instance);
     }
 
-    public function provideClasses(): array
+    public static function provideClasses(): array
     {
         $objectSeamInterface = ObjectSeam::class;
         $objectSeamTrait = ObjectSeamTrait::class;
