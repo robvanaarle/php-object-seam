@@ -17,11 +17,11 @@ class MethodSignatureBuilderTest extends TestCase
     /**
      * @dataProvider provideSignatures
      */
-    public function testMethodSignature(string $classname, string $expected, string $function)
+    public function testMethodSignature(string $class, string $method, string $expectedSignature)
     {
-        $reflectionMethod = new ReflectionMethod($classname, $function);
+        $reflectionMethod = new ReflectionMethod($class, $method);
         $builder = new MethodSignatureBuilder();
 
-        $this->assertEquals($expected, $builder->build($reflectionMethod));
+        $this->assertEquals($expectedSignature, $builder->build($reflectionMethod));
     }
 }

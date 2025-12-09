@@ -2,7 +2,7 @@
 
 // phpcs:disable Generic.Files.LineLength
 
-namespace PHPObjectSeam\Code;
+namespace PHPObjectSeam\ObjectSeam;
 
 use PHPObjectSeam\ObjectSeam;
 use PHPObjectSeam\ObjectSeam\Seam;
@@ -24,7 +24,7 @@ class CodeBuilderTest extends TestCase
     /**
      * @dataProvider provideMethods
      */
-    public function testCodeIsValid(string $class, string $signature, string $function)
+    public function testCodeIsValid(string $class)
     {
         $objectSeamClass = 'TestClass' . md5((string)rand());
         $builder = new CodeBuilder($objectSeamClass, $class);

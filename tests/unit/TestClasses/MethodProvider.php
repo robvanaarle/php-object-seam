@@ -6,209 +6,272 @@ class MethodProvider
 {
     public function provideMethods(): array
     {
-        // base
-        $methods = [
+        $cases = [
+            // PHP 7.0+
             [
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\NameOnly::class,
-                'public function method($arg)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\Scalar::class,
-                'public function method(bool $arg1, int $arg2, float $arg3, string $arg4)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\StringWithDefault::class,
-                'public function method(string $arg = "\'foo\\n")',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\IntWithDefaultNull::class,
-                'public function method(int $arg = null)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\FloatWithDefaultConstant::class,
-                'public function method(float $arg = self::FOO)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\ArrayByReference::class,
-                'public function method(array &$arg)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\Splat::class,
-                'public function method(...$arg)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\Classname::class,
-                'public function method(\Exception $arg)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\ArrayWithDefault::class,
-                'public function method(array $arg = array (' . "\n" . '  0 => \'\\\'foo' . "\n" . '\',' . "\n" . '))',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\BoolWithDefault::class,
-                'public function method(bool $arg = false)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ArgumentSignatures\SelfType::class,
-                'public function method(\PHPObjectSeam\TestClasses\ArgumentSignatures\SelfType $arg)',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\NoResult::class,
-                'public function method()',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\StringResult::class,
-                'public function method(): string',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\ClassnameResult::class,
-                'public function method(): \Exception',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\ParentResult::class,
-                'public function method(): \PHPObjectSeam\TestClasses\TestCUT',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\ParentResultInParent::class,
-                'public function method(): \PHPObjectSeam\TestClasses\TestCUT',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\SelfResult::class,
-                'public function method(): \PHPObjectSeam\TestClasses\ResultSignatures\SelfResult',
-                'method'
-            ],[
-                \PHPObjectSeam\TestClasses\ResultSignatures\SelfResultInParent::class,
-                'public function method(): \PHPObjectSeam\TestClasses\ResultSignatures\SelfResult',
-                'method'
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\NameOnly::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method($arg)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\Scalar::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(bool $arg1, int $arg2, float $arg3, string $arg4)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\StringWithDefault::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(string $arg = "\'foo\\n")',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\IntWithDefaultNull::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(int $arg = null)',
+                '_maxPHPVersionId' => 70100, // Different expected signature in PHP 7.1+
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\FloatWithDefaultConstant::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(float $arg = self::FOO)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\ArrayByReference::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(array &$arg)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\Splat::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(...$arg)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\Classname::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(\Exception $arg)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\ArrayWithDefault::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(array $arg = array (' . "\n" .
+                    '  0 => \'\\\'foo' . "\n" .
+                    '\',' . "\n" .
+                    '))',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\BoolWithDefault::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(bool $arg = false)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\SelfType::class,
+                'method' => 'method',
+                'expectedSignature' =>
+                    'public function method(\PHPObjectSeam\TestClasses\ArgumentSignatures\SelfType $arg)',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\NoResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method()',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\StringResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): string',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\ClassnameResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): \Exception',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\ParentResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): \PHPObjectSeam\TestClasses\TestCUT',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\ParentResultInParent::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): \PHPObjectSeam\TestClasses\TestCUT',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\SelfResult::class,
+                'method' => 'method',
+                'expectedSignature' =>
+                    'public function method(): \PHPObjectSeam\TestClasses\ResultSignatures\SelfResult',
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\SelfResultInParent::class,
+                'method' => 'method',
+                'expectedSignature' =>
+                    'public function method(): \PHPObjectSeam\TestClasses\ResultSignatures\SelfResult',
+            ],
+
+            // PHP 7.1+
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\VoidResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): void',
+                '_minPHPVersionId' => 70100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\NullableStringResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): ?string',
+                '_minPHPVersionId' => 70100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\NullableIntWithDefaultNull::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(?int $arg = null)',
+                '_minPHPVersionId' => 70100,
+            ],
+            [
+                // Different expected signature than in php 7.0 due to nullable type
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\IntWithDefaultNull::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(?int $arg = null)',
+                '_minPHPVersionId' => 70100,
+            ],
+
+            // PHP 8.0+
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\Union::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(int|float $arg)',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\NullableUnion::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(int|float|null $arg)',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\ConstructorPropertyPromotion::class,
+                'method' => '__construct',
+                'expectedSignature' => 'public function __construct(public ?string $arg = null)',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\MixedResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): mixed',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\UnionResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): int|float',
+                '_minPHPVersionId' => 80000,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\NullableUnionResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): int|float|null',
+                '_minPHPVersionId' => 80000,
+            ],
+
+            // PHP 8.1+
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\Intersection::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(\Iterator&\Countable $arg)',
+                '_minPHPVersionId' => 80100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\InInitializer::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(\DateTime $arg = new \DateTime)',
+                '_minPHPVersionId' => 80100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\ReadonlyProperty::class,
+                'method' => '__construct',
+                'expectedSignature' => 'public function __construct(public readonly string $arg)',
+                '_minPHPVersionId' => 80100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\NeverResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): never',
+                '_minPHPVersionId' => 80100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\IntersectionResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): \Iterator&\Countable',
+                '_minPHPVersionId' => 80100,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\StaticResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): static',
+                '_minPHPVersionId' => 80100,
+            ],
+
+            // PHP 8.2+
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\TrueType::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(true $arg)',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\FalseType::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(false $arg)',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\NullType::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(null $arg)',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ArgumentSignatures\DNF::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method((\Iterator&\Countable)|null $arg)',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\TrueResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): true',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\FalseResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): false',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\NullResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): null',
+                '_minPHPVersionId' => 80200,
+            ],
+            [
+                'class' => \PHPObjectSeam\TestClasses\ResultSignatures\DNFResult::class,
+                'method' => 'method',
+                'expectedSignature' => 'public function method(): (\Iterator&\Countable)|null',
+                '_minPHPVersionId' => 80200,
             ],
         ];
 
-        if (PHP_VERSION_ID >= 70100) {
-            $methods = array_merge($methods, [
-                [
-                    \PHPObjectSeam\TestClasses\ResultSignatures\VoidResult::class,
-                    'public function method(): void',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\NullableStringResult::class,
-                    'public function method(): ?string',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\NullableIntWithDefaultNull::class,
-                    'public function method(?int $arg = null)',
-                    'method'
-                ],[
-                    // overrides IntWithDefaultNull in base
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\IntWithDefaultNull::class,
-                    'public function method(?int $arg = null)',
-                    'method'
-                ],
-            ]);
-        }
+        // Get cases for current PHP version only
+        $cases = array_filter($cases, function ($case) {
+            $min = $case['_minPHPVersionId'] ?? 70000;
+            $max = $case['_maxPHPVersionId'] ?? PHP_INT_MAX;
 
-        if (PHP_VERSION_ID >= 80000) {
-            $methods = array_merge($methods, [
-                [
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\Union::class,
-                    'public function method(int|float $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\NullableUnion::class,
-                    'public function method(int|float|null $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\ConstructorPropertyPromotion::class,
-                    'public function __construct(public ?string $arg = null)',
-                    '__construct'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\MixedResult::class,
-                    'public function method(): mixed',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\UnionResult::class,
-                    'public function method(): int|float',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\NullableUnionResult::class,
-                    'public function method(): int|float|null',
-                    'method'
-                ],
-            ]);
-        }
+            return PHP_VERSION_ID >= $min && PHP_VERSION_ID < $max;
+        });
 
-        if (PHP_VERSION_ID >= 80100) {
-            $methods = array_merge($methods, [
-                [
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\Intersection::class,
-                    'public function method(\Iterator&\Countable $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\InInitializer::class,
-                    'public function method(\DateTime $arg = new \DateTime)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\ReadonlyProperty::class,
-                    'public function __construct(public readonly string $arg)',
-                    '__construct'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\NeverResult::class,
-                    'public function method(): never',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\IntersectionResult::class,
-                    'public function method(): \Iterator&\Countable',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\StaticResult::class,
-                    'public function method(): static',
-                    'method'
-                ],
-            ]);
-        }
-
-        if (PHP_VERSION_ID >= 80200) {
-            $methods = array_merge($methods, [
-                [
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\TrueType::class,
-                    'public function method(true $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\FalseType::class,
-                    'public function method(false $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\NullType::class,
-                    'public function method(null $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ArgumentSignatures\DNF::class,
-                    'public function method((\Iterator&\Countable)|null $arg)',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\TrueResult::class,
-                    'public function method(): true',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\FalseResult::class,
-                    'public function method(): false',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\NullResult::class,
-                    'public function method(): null',
-                    'method'
-                ],[
-                    \PHPObjectSeam\TestClasses\ResultSignatures\DNFResult::class,
-                    'public function method(): (\Iterator&\Countable)|null',
-                    'method'
-                ],
-            ]);
-        }
-
-        // deduplicate
-        $result = [];
-        foreach ($methods as $method) {
-            $result[$method[0]] = $method;
-        }
-        return array_values($result);
+        // Remove min/max keys
+        return array_map(function ($case) {
+            unset($case['_minPHPVersionId'], $case['_maxPHPVersionId']);
+            return $case;
+        }, $cases);
     }
 }
