@@ -175,6 +175,26 @@ class MethodProvider
                 'public function method(): int|float|null',
                 '_minPHPVersionId' => 80000,
             ],
+            [
+                // Other attribute test cases are in AttributeBuilderTest
+                \PHPObjectSeam\TestClasses\MethodAttributes\ArrayParam::class,
+                'method',
+                "#[AttributeWithArrayParam(array (\n"
+                . "  0 => 1,\n"
+                . "  1 => '2',\n"
+                . "  2 => 3.0,\n"
+                . "  3 => true,\n"
+                . "  4 => NULL,\n"
+                . "  5 => \n"
+                . "  array (\n"
+                . "    0 => 4,\n"
+                . "    1 => 5,\n"
+                . "  ),\n"
+                . "  'six' => 6,\n"
+                . "))]\n"
+                . 'public function method(): void',
+                '_minPHPVersionId' => 80000,
+            ],
 
             // PHP 8.1+
             [

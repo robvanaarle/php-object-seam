@@ -8,7 +8,7 @@ use ReflectionMethod;
 use ReflectionParameter;
 use ReflectionType;
 
-class MethodSignatureBuilder
+class MethodDeclarationBuilder
 {
     public function build(ReflectionMethod $reflectionMethod): string
     {
@@ -29,7 +29,11 @@ class MethodSignatureBuilder
         }
         $definition[] = $functionSignature;
 
-        return implode(' ', $definition);
+        $signature = implode(' ', $definition);
+
+        $attributes = $this->getMethodAttributes($reflectionMethod);
+
+        return implode("\n", array_merge($attributes, [$signature]));
     }
 
     protected function getParameterSignatures(
@@ -182,5 +186,47 @@ class MethodSignatureBuilder
         }
 
         return $fqType;
+    }
+
+    protected function getMethodAttributes(ReflectionMethod $method): array
+    {
+        // getAttributes is only available in PHP 8.0 and later
+        if (!method_exists($method, 'getAttributes')) {
+            return [];
+        }
+
+        return $this->getAttributes($method->getAttributes());
+    }
+
+    protected function getAttributes(array $attributes): array
+    {
+        $lines = [];
+        foreach ($attributes as $attr) {
+            $name = $attr->getName();
+            $args = $attr->getArguments();
+
+            if (!empty($args)) {
+                $argParts = [];
+
+                foreach ($args as $key => $value) {
+                    // Encode argument value safely
+                    $encoded = var_export($value, true);
+
+                    // Named argument?
+                    if (is_string($key)) {
+                        $argParts[] = "{$key}: {$encoded}";
+                    } else {
+                        $argParts[] = $encoded;
+                    }
+                }
+
+                $argString = implode(', ', $argParts);
+                $lines[] = "#[{$name}({$argString})]";
+            } else {
+                $lines[] = "#[{$name}]";
+            }
+        }
+
+        return $lines;
     }
 }

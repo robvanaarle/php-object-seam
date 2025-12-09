@@ -6,18 +6,18 @@ use PHPObjectSeam\TestClasses\MethodProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
-class MethodSignatureBuilderTest extends TestCase
+class MethodDeclarationBuilderTest extends TestCase
 {
-    public static function provideSignatures(): array
+    public static function provideDeclarations(): array
     {
         $provider = new MethodProvider();
         return $provider->provideMethods();
     }
 
     /**
-     * @dataProvider provideSignatures
+     * @dataProvider provideDeclarations
      */
-    public function testMethodSignature(string $class, string $method, string $expectedSignature)
+    public function testBuildMethodDeclaration(string $class, string $method, string $expectedDeclaration)
     {
         // Suppress deprecated warnings for methods that use deprecated features, e.g.
         // public function method(int $arg = null) in PHP 8.4 (should be ?int $arg = null)
@@ -43,8 +43,8 @@ class MethodSignatureBuilderTest extends TestCase
             restore_error_handler();
         }
 
-        $builder = new MethodSignatureBuilder();
+        $builder = new MethodDeclarationBuilder();
 
-        $this->assertEquals($expectedSignature, $builder->build($reflectionMethod));
+        $this->assertEquals($expectedDeclaration, $builder->build($reflectionMethod));
     }
 }

@@ -2,7 +2,7 @@
 
 namespace PHPObjectSeam\ObjectSeam;
 
-use PHPObjectSeam\Code\MethodSignatureBuilder;
+use PHPObjectSeam\Code\MethodDeclarationBuilder;
 use PHPObjectSeam\ObjectSeam;
 use ReflectionClass;
 use ReflectionMethod;
@@ -11,13 +11,13 @@ class CodeBuilder
 {
     protected $objectSeamClass;
     protected $class;
-    protected $methodSignatureBuilder;
+    protected $methodDeclarationBuilder;
 
     public function __construct(string $objectSeamClass, string $class)
     {
         $this->objectSeamClass = $objectSeamClass;
         $this->class = $class;
-        $this->methodSignatureBuilder = new MethodSignatureBuilder();
+        $this->methodDeclarationBuilder = new MethodDeclarationBuilder();
     }
 
     public function build(): string
@@ -68,7 +68,7 @@ class CodeBuilder
         }
 
         $code[] = '';
-        $code[] = '    ' . $this->methodSignatureBuilder->build($reflectionMethod);
+        $code[] = '    ' . $this->methodDeclarationBuilder->build($reflectionMethod);
 
         $return = 'return ';
         if ($this->shouldNotReturn($reflectionMethod)) {
