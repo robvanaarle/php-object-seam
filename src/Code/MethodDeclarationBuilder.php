@@ -10,6 +10,13 @@ use ReflectionType;
 
 class MethodDeclarationBuilder
 {
+    protected $attributeBuilder;
+
+    public function __construct()
+    {
+        $this->attributeBuilder = new AttributeBuilder();
+    }
+
     public function build(ReflectionMethod $reflectionMethod): string
     {
         $reflectionClass = $reflectionMethod->getDeclaringClass();
@@ -195,36 +202,9 @@ class MethodDeclarationBuilder
             return [];
         }
 
-        return $this->getAttributes($method->getAttributes());
-    }
-
-    protected function getAttributes(array $attributes): array
-    {
         $lines = [];
-        foreach ($attributes as $attr) {
-            $name = $attr->getName();
-            $args = $attr->getArguments();
-
-            if (!empty($args)) {
-                $argParts = [];
-
-                foreach ($args as $key => $value) {
-                    // Encode argument value safely
-                    $encoded = var_export($value, true);
-
-                    // Named argument?
-                    if (is_string($key)) {
-                        $argParts[] = "{$key}: {$encoded}";
-                    } else {
-                        $argParts[] = $encoded;
-                    }
-                }
-
-                $argString = implode(', ', $argParts);
-                $lines[] = "#[{$name}({$argString})]";
-            } else {
-                $lines[] = "#[{$name}]";
-            }
+        foreach ($method->getAttributes() as $attribute) {
+            $lines[] = $this->attributeBuilder->build($attribute);
         }
 
         return $lines;
