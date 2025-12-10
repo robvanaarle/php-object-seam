@@ -92,34 +92,6 @@ final class Seam
         return $reflectionMethod->getClosure($this->objectSeam);
     }
 
-    public function callPropertyHookGet(string $property)
-    {
-        if (!class_exists('\PropertyHookType')) {
-            throw new Exception(
-                'Property hooks are not supported in this PHP version. ' .
-                'Make sure you are using a PHP version that supports Property Hooks.'
-            );
-        }
-
-        $reflectionMethod = $this->getReflectionHook($property, \PropertyHookType::Get);
-        $closure = $reflectionMethod->getClosure($this->objectSeam);
-        return $closure();
-    }
-
-    public function callPropertyHookSet(string $property, $arg)
-    {
-        if (!class_exists('\PropertyHookType')) {
-            throw new Exception(
-                'Property hooks are not supported in this PHP version. ' .
-                'Make sure you are using a PHP version that supports Property Hooks.'
-            );
-        }
-
-        $reflectionMethod = $this->getReflectionHook($property, \PropertyHookType::Set);
-        $closure = $reflectionMethod->getClosure($this->objectSeam);
-        return $closure($arg);
-    }
-
     public function callConstruct(...$args)
     {
         $this->call('__construct', ...$args);
@@ -184,6 +156,15 @@ final class Seam
 
     protected function getReflectionMethod(string $function): ReflectionMethod
     {
+        // check if property hook: $var::set or $var::get
+        if (substr($function, -5) === '::get' || substr($function, -5) === '::set') {
+            $parts = explode('::', $function);
+            $property = substr($parts[0], 1); // remove leading $
+            /* @phpstan-ignore class.notFound,class.notFound */
+            $hookType = substr($function, -5) === '::get' ? \PropertyHookType::Get : \PropertyHookType::Set;
+            return $this->getReflectionHook($property, $hookType);
+        }
+
         $reflectionMethod = new ReflectionMethod(get_parent_class($this->objectSeam), $function);
         return $reflectionMethod;
     }

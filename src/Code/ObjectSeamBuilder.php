@@ -28,11 +28,10 @@ class ObjectSeamBuilder
         $code->addLine($this->getObjectSeamDeclaration())
             ->addLine('{')
             ->addLineIndented('use ' . ObjectSeamTrait::class . ';')
+            ->merge($this->getPropertyHooks())
             ->merge($this->getMethodDefinitions())
             ->addLine('}');
 
-
-        //$code = array_merge($code, $this->getPropertyHooks());
         return $code;
     }
 
@@ -67,17 +66,30 @@ class ObjectSeamBuilder
         return $code;
     }
 
-    protected function getPropertyHooks(): array
+    protected function getPropertyHooks(): CodeBlock
     {
-        $code = [];
+        $code = new CodeBlock();
 
         $reflectionClass = new ReflectionClass($this->class);
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            $hookCode = $this->methodDeclarationBuilder->buildPropertyHook($reflectionProperty);
-            if ($hookCode !== null) {
-                $code[] = '';
-                $code[] = '    ' . $hookCode;
+            //  Property hooks are only supported on PHP 8.4+
+            if (!method_exists($reflectionProperty, 'getHooks')) {
+                continue;
             }
+
+            $hooks = $reflectionProperty->getHooks();
+            if (count($hooks) === 0) {
+                continue;
+            }
+
+            $bodies = [];
+            foreach ($hooks as $type => $hook) {
+                $bodies[$type] = $this->getMethodBody($hook);
+            }
+
+            $hook = $this->methodDeclarationBuilder->buildPropertyHook($reflectionProperty, $bodies);
+            $code->addLine()
+                ->mergeIndented($hook);
         }
 
         return $code;

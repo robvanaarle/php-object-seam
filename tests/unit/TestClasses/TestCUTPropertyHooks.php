@@ -5,6 +5,8 @@ namespace PHPObjectSeam\TestClasses;
 // phpcs:disable
 class TestCUTPropertyHooks
 {
+    public int $temp;
+
     public int $publicX {
         get => $this->publicX * 2;
         set(int $x) => $this->publicX = $x * 3;

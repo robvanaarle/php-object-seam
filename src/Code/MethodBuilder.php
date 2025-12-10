@@ -67,6 +67,55 @@ class MethodBuilder
         return $code;
     }
 
+    protected function getPropertyHookMethidSignature(ReflectionMethod $reflectionMethod, string $type): CodeBlock
+    {
+        $code = new CodeBlock();
+        $code->add($type);
+
+        $reflectionClass = $reflectionMethod->getDeclaringClass();
+        $parameters = $this->getParameterDeclarations($reflectionMethod, $reflectionClass);
+
+        if ($parameters->lineCount() > 0) {
+            $code->add('(')
+                ->mergeInline($parameters)
+                ->add(')');
+        }
+
+        return $code;
+    }
+
+    public function buildPropertyHook(\ReflectionProperty $reflectionProperty, array $bodies): CodeBlock
+    {
+        $code = new CodeBlock();
+
+        //  Property hooks are only supported on PHP 8.4+
+        if (!method_exists($reflectionProperty, 'getHooks') || !method_exists($reflectionProperty, 'getType')) {
+            return $code;
+        }
+
+        $reflectionClass = $reflectionProperty->getDeclaringClass();
+        $code->add('public ')
+            ->add($this->getType($reflectionProperty->getType(), $reflectionClass))
+            ->add(' ')
+            ->add('$' . $reflectionProperty->getName())
+            ->addLine("{");
+
+        foreach ($reflectionProperty->getHooks() as $type => $hookMethod) {
+            $hook = new CodeBlock();
+
+            $hook->merge($this->getPropertyHookMethidSignature($hookMethod, $type));
+            $hook->addLine('{')
+                ->mergeIndented($bodies[$type])
+                ->addLine('}');
+
+            $code->mergeIndented($hook);
+        }
+
+        $code->addLine("}");
+
+        return $code;
+    }
+
     protected function getParameterDeclarations(
         ReflectionMethod $reflectionMethod,
         ReflectionClass $reflectionClass

@@ -211,8 +211,8 @@ class SeamTest extends TestCase
         /* @phpstan-ignore class.notFound */
         $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
 
-        $seam->callPropertyHookSet('publicX', 10);
-        $this->assertEquals(60, $seam->callPropertyHookGet('publicX'));
+        $seam->call('$publicX::set', 10);
+        $this->assertEquals(60, $seam->call('$publicX::get'));
     }
 
     /**
@@ -223,8 +223,8 @@ class SeamTest extends TestCase
         $objectSeam = new TestCUTPropertyHooksChildObjectSeam();
         $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooksChildObjectSeam::class));
 
-        $seam->callPropertyHookSet('publicX', 10);
-        $this->assertEquals(60, $seam->callPropertyHookGet('publicX'));
+        $seam->call('$publicX::set', 10);
+        $this->assertEquals(60, $seam->call('$publicX::get'));
     }
 
     /**
@@ -236,8 +236,8 @@ class SeamTest extends TestCase
         /* @phpstan-ignore class.notFound */
         $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
 
-        $seam->callPropertyHookSet('protectedX', 10);
-        $this->assertEquals(15, $seam->callPropertyHookGet('protectedX'));
+        $seam->call('$protectedX::set', 10);
+        $this->assertEquals(15, $seam->call('$protectedX::get'));
     }
 
     /**
@@ -248,8 +248,8 @@ class SeamTest extends TestCase
         $objectSeam = new TestCUTPropertyHooksChildObjectSeam();
         $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooksChildObjectSeam::class));
 
-        $seam->callPropertyHookSet('protectedX', 10);
-        $this->assertEquals(15, $seam->callPropertyHookGet('protectedX'));
+        $seam->call('$protectedX::set', 10);
+        $this->assertEquals(15, $seam->call('$protectedX::get'));
     }
 
     /**
@@ -261,7 +261,83 @@ class SeamTest extends TestCase
         /* @phpstan-ignore class.notFound */
         $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
 
-        $seam->callPropertyHookSet('privateX', 10);
-        $this->assertEquals(5, $seam->callPropertyHookGet('privateX'));
+        $seam->call('$privateX::set', 10);
+        $this->assertEquals(5, $seam->call('$privateX::get'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPublicPropertyHookCanBeOverridden()
+    {
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->override('$publicX::get', function () {
+            /* @phpstan-ignore property.notFound */
+            return $this->temp;
+        })->override('$publicX::set', function (int $value) {
+            /* @phpstan-ignore property.notFound */
+            $this->temp = $value;
+        });
+
+        $seam->call('$publicX::set', 123);
+        $this->assertEquals(123, $seam->call('$publicX::get'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testProtectedPropertyHookCanBeOverridden()
+    {
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->override('$protectedX::get', function () {
+            /* @phpstan-ignore property.notFound */
+            return $this->temp;
+        })->override('$protectedX::set', function (int $value) {
+            /* @phpstan-ignore property.notFound */
+            $this->temp = $value;
+        });
+
+        $seam->call('$protectedX::set', 456);
+        $this->assertEquals(456, $seam->call('$protectedX::get'));
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPrivatePropertyGetHookCannotBeOverridden()
+    {
+        $this->expectException(Exception::class);
+
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->override('$privateX::get', function () {
+            /* @phpstan-ignore property.notFound */
+            return $this->temp;
+        });
+    }
+
+    /**
+     * @requires PHP >= 8.4
+     */
+    public function testPrivatePropertySetHookCannotBeOverridden()
+    {
+        $this->expectException(Exception::class);
+
+        $objectSeam = new TestCUTPropertyHooksObjectSeam();
+        /* @phpstan-ignore class.notFound */
+        $seam = new Seam($objectSeam, new ClassSeam(TestCUTPropertyHooks::class));
+
+        $seam->override('$privateX::set', function (int $value) {
+            /* @phpstan-ignore property.notFound */
+            $this->temp = $value;
+        });
     }
 }

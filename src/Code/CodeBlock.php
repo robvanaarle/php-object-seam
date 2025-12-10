@@ -11,7 +11,7 @@ final class CodeBlock
         $this->codeLines = $codeLines;
     }
 
-    public function add(string $code): CodeBlock
+    public function add(string $code): self
     {
         if (count($this->codeLines) > 0) {
             $this->codeLines[count($this->codeLines) - 1] .= $code;
@@ -21,13 +21,13 @@ final class CodeBlock
         return $this;
     }
 
-    public function addLine(string $code = '', int $indentLevel = 0): CodeBlock
+    public function addLine(string $code = '', int $indentLevel = 0): self
     {
         $this->codeLines[] = $this->indent($code, $indentLevel);
         return $this;
     }
 
-    public function prepend(string $code): CodeBlock
+    public function prepend(string $code): self
     {
         if (count($this->codeLines) === 0) {
             return $this->addLine($code);
@@ -37,18 +37,18 @@ final class CodeBlock
         return $this;
     }
 
-    public function prependLine(string $code = '', int $indentLevel = 0): CodeBlock
+    public function prependLine(string $code = '', int $indentLevel = 0): self
     {
         array_unshift($this->codeLines, $this->indent($code, $indentLevel));
         return $this;
     }
 
-    public function addLineIndented(string $code = ''): CodeBlock
+    public function addLineIndented(string $code = ''): self
     {
         return $this->addLine($code, 1);
     }
 
-    public function merge(CodeBlock $otherBlock, int $indentLevel = 0): CodeBlock
+    public function merge(CodeBlock $otherBlock, int $indentLevel = 0): self
     {
         foreach ($otherBlock->codeLines as $line) {
             $this->addLine($line, $indentLevel);
@@ -56,12 +56,12 @@ final class CodeBlock
         return $this;
     }
 
-    public function mergeIndented(CodeBlock $otherBlock): CodeBlock
+    public function mergeIndented(CodeBlock $otherBlock): self
     {
         return $this->merge($otherBlock, 1);
     }
 
-    public function mergeInline(CodeBlock $otherBlock): CodeBlock
+    public function mergeInline(CodeBlock $otherBlock): self
     {
         foreach ($otherBlock->codeLines as $i => $line) {
             if ($i === 0) {

@@ -20,9 +20,11 @@ As legacy code often runs on older PHP versions, this package aims to support as
 - Call protected and private property hooks
 - Override public and protected methods
 - Override public and protected static methods
+- Override public and protected property hooks
 - Instantiate an object with a custom constructor
 - Capture and retrieve public and protected method calls
 - Capture and retrieve public and protected static method calls
+- Capture and retrieve public and protected property hook calls
 - Autocomplete in PhpStorm when using the `CreatesObjectSeams` trait
 - Testing framework agnostic
 
@@ -83,8 +85,8 @@ This can be used for 'Subclass and make public'.
 ### Call non-public property hook
 ```php
 $foo = $this->createObjectSeam(Foo::class);  
-$foo->seam()->callPropertyHookSet('nonPublicProperty', $arg1);
-$result = $foo->seam()->callPropertyHookGet('nonPublicProperty');
+$foo->seam()->call('$nonPublicProperty::set', $value);
+$value = $foo->seam()->call('$nonPublicProperty::get');
 ```
 
 This can be used for 'Subclass and make public'.
@@ -95,7 +97,7 @@ Overridden methods are executed in the scope of the object seam class.
 Override with a Closure:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
-$result = $foo->seam()->override('protectedMethod', function(int $arg1) {
+$foo->seam()->override('publicOrProtectedMethod', function(int $arg1) {
   return $this->otherMethod($arg1) * 5;
 });
 ```
@@ -103,7 +105,7 @@ $result = $foo->seam()->override('protectedMethod', function(int $arg1) {
 Override with a result value:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
-$result = $foo->seam()->override('protectedMethod', 42);
+$foo->seam()->override('publicOrProtectedMethod', 42);
 ```
 
 This can be used for 'Subclass and override' with the goal altering behaviour of a public or protected method.
@@ -114,7 +116,7 @@ Overridden static methods are executed in the scope of the object seam class.
 Override with a Closure:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
-$result = $foo->seam()->overrideStatic('protectedStaticMethod', function(int $arg1) {
+$foo->seam()->overrideStatic('publicOrProtectedStaticMethod', function(int $arg1) {
   return parent::protectedMethod($arg1) * 3;
 });
 ```
@@ -122,10 +124,32 @@ $result = $foo->seam()->overrideStatic('protectedStaticMethod', function(int $ar
 Override with a result value:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
-$result = $foo->seam()->overrideStatic('protectedStaticMethod', 9);
+$foo->seam()->overrideStatic('publicOrProtectedStaticMethod', 9);
 ```
 
 This can be used for 'Subclass and override' with the goal altering behaviour of a public or protected static method.
+
+### Override public or protected property hook
+Overridden property hooks are executed in the scope of the object seam class.
+
+Override with a Closure:
+```php
+$foo = $this->createObjectSeam(Foo::class);
+$foo->seam()->override('$publicOrProtectedProperty::set', function(int $value) {
+  $this->value = $value * 2;
+});
+$foo->seam()->override('$publicOrProtectedProperty::get', function() {
+  return $this->value + 10;
+});
+```
+
+Override with a result value:
+```php
+$foo = $this->createObjectSeam(Foo::class);
+$foo->seam()->override('$publicOrProtectedProperty::get', 25);
+```
+
+This can be used for 'Subclass and override' with the goal altering behaviour of a public or protected method.
 
 ### Instantiate an object with a custom constructor
 ```php
@@ -176,7 +200,7 @@ $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->captureCalls('publicOrProtectedMethod');
 
 // do something with $foo
-$foo->publicMethod();
+$foo->methodThatUsesTheCapturingMethods();
 
 $calls = $foo->seam()->getCapturedCalls('publicOrProtectedMethod');
 // assert that $calls contains a certain combination of arguments.
@@ -191,8 +215,24 @@ $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->captureStaticCalls('publicOrProtectedStaticMethod');
 
 // do something with $foo
-$foo::publicMethod();
+$foo::methodThatUsesTheCapturingMethods();
 
 $calls = $foo->seam()->getCapturedStaticCalls('publicOrProtectedMethod');
+// assert that $calls contains a certain combination of arguments.
+```
+
+### Capture and retrieve public and protected property hook calls
+Capturing and retrieving calls allows for asserting that a method has been called and with which arguments.
+
+```php
+$foo = $this->createObjectSeam(Foo::class);
+$foo->seam()->captureCalls('$publicOrProtectedProperty::get')
+  ->captureCalls('$publicOrProtectedProperty::set');
+
+// do something with $foo
+$foo->methodThatUsesTheCapturingPropeties();
+
+$getCalls = $foo->seam()->getCapturedCalls('$publicOrProtectedProperty::get');
+$setCalls = $foo->seam()->getCapturedCalls('$publicOrProtectedProperty::set');
 // assert that $calls contains a certain combination of arguments.
 ```
