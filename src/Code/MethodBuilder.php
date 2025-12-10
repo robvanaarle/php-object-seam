@@ -2,20 +2,26 @@
 
 namespace PHPObjectSeam\Code;
 
+use PHPObjectSeam\Code\Exceptions\AttributeArgWithObjectDefaultValueUnsupported;
 use PHPObjectSeam\Exception;
 use Reflection;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
-use ReflectionProperty;
 use ReflectionType;
+use Reflector;
 
 class MethodBuilder
 {
     protected $attributeBuilder;
+    protected $config;
 
-    public function __construct()
+    public function __construct(array $config = [])
     {
+        $this->config = array_merge([
+            'ignore_attributes_with_object_default_values' => false,
+        ], $config);
+
         $this->attributeBuilder = new AttributeBuilder();
     }
 
@@ -32,7 +38,7 @@ class MethodBuilder
 
     public function buildDeclaration(ReflectionMethod $reflectionMethod): CodeBlock
     {
-        return $this->getMethodAttributes($reflectionMethod)
+        return $this->getReflectorAttributes($reflectionMethod)
             ->merge($this->getMethodSignature($reflectionMethod));
     }
 
@@ -139,7 +145,7 @@ class MethodBuilder
             }
         }
 
-        $parameters = $this->getParameterAttributes($reflectionParameter);
+        $parameters = $this->getReflectorAttributes($reflectionParameter);
 
         // each parameter attribute should be on its own line
         if ($parameters->lineCount() > 0) {
@@ -228,34 +234,34 @@ class MethodBuilder
         return $fqType;
     }
 
-    protected function getMethodAttributes(ReflectionMethod $method): CodeBlock
+    /**
+     * @param ReflectionMethod|ReflectionParameter $reflector
+     */
+    protected function getReflectorAttributes(Reflector $reflector): CodeBlock
     {
         $code = new CodeBlock();
 
         // getAttributes is only available in PHP 8.0 and later
-        if (!method_exists($method, 'getAttributes')) {
+        if (!method_exists($reflector, 'getAttributes')) {
             return $code;
         }
 
-        foreach ($method->getAttributes() as $attribute) {
-            $code->merge($this->attributeBuilder->build($attribute));
-        }
+        foreach ($reflector->getAttributes() as $attribute) {
+            try {
+                $code->merge($this->attributeBuilder->build($attribute));
+            } catch (AttributeArgWithObjectDefaultValueUnsupported $e) {
+                if ($this->config['ignore_attributes_with_object_default_values']) {
+                    // skip attribute
+                    continue;
+                }
 
-        return $code;
-    }
-
-    protected function getParameterAttributes(ReflectionParameter $parameter): CodeBlock
-    {
-        $code = new CodeBlock();
-
-        // getAttributes is only available in PHP 8.0 and later
-        if (!method_exists($parameter, 'getAttributes')) {
-            return $code;
-        }
-
-        $lines = [];
-        foreach ($parameter->getAttributes() as $attribute) {
-            $code->merge($this->attributeBuilder->build($attribute));
+                throw new AttributeArgWithObjectDefaultValueUnsupported(
+                    $e->getMessage() . "  To skip this attribute in the ObjectSeam, " .
+                    "pass 'ignore_attributes_with_object_default_values' with true as config.",
+                    $e->getCode(),
+                    $e
+                );
+            }
         }
 
         return $code;

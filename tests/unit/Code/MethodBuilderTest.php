@@ -2,7 +2,7 @@
 
 namespace PHPObjectSeam\Code;
 
-use PHPObjectSeam\Exception;
+use PHPObjectSeam\Code\Exceptions\AttributeArgWithObjectDefaultValueUnsupported;
 use PHPObjectSeam\TestClasses\MethodProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -38,21 +38,22 @@ class MethodBuilderTest extends TestCase
             restore_error_handler();
         }
 
-        $builder = new MethodBuilder();
+        $builder = new MethodBuilder([
+            'ignore_attributes_with_object_default_values' => true,
+        ]);
 
         $this->assertEquals($expectedDeclaration, $builder->buildDeclaration($reflectionMethod)->toString());
     }
 
     /**
-     * @dataProvider provideUnsupportedDeclarations
+     * @requires PHP >= 8.5
+     * @dataProvider provideDeclarationsWithAttributeArgWithObjectAsDefaultValue
      */
-    public function testBuildMethodDeclarationFail(string $class, string $method)
-    {
-        if ($method === 'noOpSkipMethod') {
-            $this->markTestSkipped('No unsupported methods provided by the MethodProvider.');
-        }
-
-        static::expectException(Exception::class);
+    public function testBuildMethodDeclarationWithAttributeArgWithObjectAsDefaultValueFails(
+        string $class,
+        string $method
+    ) {
+        static::expectException(AttributeArgWithObjectDefaultValueUnsupported::class);
 
         // Suppress deprecated warnings for methods that use deprecated features, e.g.
         // public function method(int $arg = null) in PHP 8.4 (should be ?int $arg = null)
@@ -89,14 +90,17 @@ class MethodBuilderTest extends TestCase
         return $provider->provideSupportedMethods();
     }
 
-    public static function provideUnsupportedDeclarations(): array
+    public static function provideDeclarationsWithAttributeArgWithObjectAsDefaultValue(): array
     {
-        $provider = new MethodProvider();
-        $declarations = $provider->provideUnsupportedMethods();
-        if (count($declarations) === 0) {
-            // PHPUnit requires at least one data set for data providers
-            $declarations[] = [\stdClass::class, 'noOpSkipMethod'];
-        }
-        return $declarations;
+        return [
+            [
+                \PHPObjectSeam\TestClasses\MethodAttributes\StaticClosureParam::class,
+                'method'
+            ],
+            [
+                \PHPObjectSeam\TestClasses\ArgumentSignatures\StaticClosureAttributeParam::class,
+                'method'
+            ]
+        ];
     }
 }

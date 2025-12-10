@@ -331,26 +331,22 @@ class MethodProvider
                 'public function method(): (\Iterator&\Countable)|null',
                 '_minPHPVersionId' => 80200,
             ],
-        ];
 
-        return $this->filter($cases);
-    }
-
-    public function provideUnsupportedMethods(): array
-    {
-        /**
-         * Each case is an array with:
-         * - class name
-         * - method name
-         * - expected exception message substring
-         */
-        $cases = [
             // PHP 8.5+
             [
+                // ignore_attributes_with_object_default_values must be true to get the expected result
                 \PHPObjectSeam\TestClasses\MethodAttributes\StaticClosureParam::class,
                 'method',
+                "public function method(): void",
                 '_minPHPVersionId' => 80500,
             ],
+            [
+                // ignore_attributes_with_object_default_values must be true to get the expected result
+                \PHPObjectSeam\TestClasses\ArgumentSignatures\StaticClosureAttributeParam::class,
+                'method',
+                'public function method($param): void',
+                '_minPHPVersionId' => 80500,
+            ]
         ];
 
         return $this->filter($cases);

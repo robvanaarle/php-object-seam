@@ -15,11 +15,11 @@ class ObjectSeamBuilder
     protected $class;
     protected $methodDeclarationBuilder;
 
-    public function __construct(string $objectSeamClass, string $class)
+    public function __construct(string $objectSeamClass, string $class, array $config = [])
     {
         $this->objectSeamClass = $objectSeamClass;
         $this->class = $class;
-        $this->methodDeclarationBuilder = new MethodBuilder();
+        $this->methodDeclarationBuilder = new MethodBuilder($config);
     }
 
     public function build(): CodeBlock

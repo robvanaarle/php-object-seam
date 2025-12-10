@@ -17,11 +17,18 @@ class Builder
     protected $class;
 
     /**
-     * @param class-string<TSeamedObject> $class
+     * @var array{ignore_attributes_with_object_default_values?: bool } $config
      */
-    public function __construct(string $class)
+    protected $config;
+
+    /**
+     * @param class-string<TSeamedObject> $class
+     * @param array{ignore_attributes_with_object_default_values?: bool } $config
+     */
+    public function __construct(string $class, array $config = [])
     {
         $this->class = $class;
+        $this->config = $config;
     }
 
     public function buildObjectSeamClass(): string
@@ -58,7 +65,7 @@ class Builder
 
     protected function getCode(string $seamClass): string
     {
-        $codeBuilder = new ObjectSeamBuilder($seamClass, $this->class);
+        $codeBuilder = new ObjectSeamBuilder($seamClass, $this->class, $this->config);
         return $codeBuilder->build()->toString();
     }
 }

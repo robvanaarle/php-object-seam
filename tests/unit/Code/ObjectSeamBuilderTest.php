@@ -26,7 +26,9 @@ class ObjectSeamBuilderTest extends TestCase
     public function testCodeIsValid(string $class)
     {
         $objectSeamClass = 'TestClass' . md5((string)rand());
-        $builder = new ObjectSeamBuilder($objectSeamClass, $class);
+        $builder = new ObjectSeamBuilder($objectSeamClass, $class, [
+            'ignore_attributes_with_object_default_values' => true,
+        ]);
         $code = $builder->build()->toString();
 
         eval($code);

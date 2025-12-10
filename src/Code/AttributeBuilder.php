@@ -2,7 +2,7 @@
 
 namespace PHPObjectSeam\Code;
 
-use PHPObjectSeam\Exception;
+use PHPObjectSeam\Code\Exceptions\AttributeArgWithObjectDefaultValueUnsupported;
 
 class AttributeBuilder
 {
@@ -21,8 +21,9 @@ class AttributeBuilder
             foreach ($args as $key => $value) {
                 // objects are not supported, as it's impossible to get the original code representation
                 if (is_object($value)) {
-                    throw new Exception(
-                        "Attribute arguments of type object are not supported: (" . get_class($value) . ")"
+                    throw new AttributeArgWithObjectDefaultValueUnsupported(
+                        "Attribute arguments with default value of type object are not supported by PHP Object Seam " .
+                        "(attribute #[{$name}], argument {$key}, type " . get_class($value) . ")."
                     );
                 }
 

@@ -2,7 +2,7 @@
 
 namespace PHPObjectSeam\Code;
 
-use PHPObjectSeam\Exception;
+use PHPObjectSeam\Code\Exceptions\AttributeArgWithObjectDefaultValueUnsupported;
 use PHPUnit\Framework\TestCase;
 
 class AttributeBuilderTest extends TestCase
@@ -24,7 +24,7 @@ class AttributeBuilderTest extends TestCase
      */
     public function testBuildAttributeFail(string $class, string $expectedAttribute)
     {
-        static::expectException(Exception::class);
+        static::expectException(AttributeArgWithObjectDefaultValueUnsupported::class);
 
         $reflectionMethod = new \ReflectionMethod($class, 'method');
         $builder = new AttributeBuilder();

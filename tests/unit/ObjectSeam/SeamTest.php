@@ -13,8 +13,6 @@ use PHPUnit\Framework\TestCase;
 
 class SeamTest extends TestCase
 {
-    use CreatesObjectSeams;
-
     protected $objectSeam;
 
     protected function createSeam()
