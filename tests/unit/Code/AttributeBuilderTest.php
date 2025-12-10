@@ -16,7 +16,7 @@ class AttributeBuilderTest extends TestCase
         $builder = new AttributeBuilder();
 
         /** @phpstan-ignore-next-line */
-        $this->assertEquals($expectedAttribute, $builder->build($reflectionMethod->getAttributes()[0]));
+        $this->assertEquals($expectedAttribute, $builder->build($reflectionMethod->getAttributes()[0])->toString());
     }
 
     /**

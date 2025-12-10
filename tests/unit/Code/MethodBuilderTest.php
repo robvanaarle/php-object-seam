@@ -7,7 +7,7 @@ use PHPObjectSeam\TestClasses\MethodProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
-class MethodDeclarationBuilderTest extends TestCase
+class MethodBuilderTest extends TestCase
 {
     /**
      * @dataProvider provideSupportedDeclarations
@@ -38,9 +38,9 @@ class MethodDeclarationBuilderTest extends TestCase
             restore_error_handler();
         }
 
-        $builder = new MethodDeclarationBuilder();
+        $builder = new MethodBuilder();
 
-        $this->assertEquals($expectedDeclaration, $builder->build($reflectionMethod));
+        $this->assertEquals($expectedDeclaration, $builder->buildDeclaration($reflectionMethod)->toString());
     }
 
     /**
@@ -78,9 +78,9 @@ class MethodDeclarationBuilderTest extends TestCase
             restore_error_handler();
         }
 
-        $builder = new MethodDeclarationBuilder();
+        $builder = new MethodBuilder();
 
-        $builder->build($reflectionMethod);
+        $builder->buildDeclaration($reflectionMethod);
     }
 
     public static function provideSupportedDeclarations(): array

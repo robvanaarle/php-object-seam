@@ -2,6 +2,7 @@
 
 namespace PHPObjectSeam\ObjectSeam;
 
+use PHPObjectSeam\Code\ObjectSeamBuilder;
 use PHPObjectSeam\ObjectSeam;
 use ReflectionClass;
 
@@ -57,7 +58,7 @@ class Builder
 
     protected function getCode(string $seamClass): string
     {
-        $codeBuilder = new CodeBuilder($seamClass, $this->class);
-        return $codeBuilder->build();
+        $codeBuilder = new ObjectSeamBuilder($seamClass, $this->class);
+        return $codeBuilder->build()->toString();
     }
 }

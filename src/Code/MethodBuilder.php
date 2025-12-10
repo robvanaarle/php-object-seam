@@ -7,9 +7,10 @@ use Reflection;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
+use ReflectionProperty;
 use ReflectionType;
 
-class MethodDeclarationBuilder
+class MethodBuilder
 {
     protected $attributeBuilder;
 
@@ -18,49 +19,72 @@ class MethodDeclarationBuilder
         $this->attributeBuilder = new AttributeBuilder();
     }
 
-    public function build(ReflectionMethod $reflectionMethod): string
+    public function build(ReflectionMethod $reflectionMethod, CodeBlock $body): CodeBlock
     {
+        $code = new CodeBlock();
+        $code->merge($this->buildDeclaration($reflectionMethod))
+            ->addLine('{')
+            ->mergeIndented($body)
+            ->addLine('}');
+
+        return $code;
+    }
+
+    public function buildDeclaration(ReflectionMethod $reflectionMethod): CodeBlock
+    {
+        return $this->getMethodAttributes($reflectionMethod)
+            ->merge($this->getMethodSignature($reflectionMethod));
+    }
+
+    protected function getMethodSignature(ReflectionMethod $reflectionMethod): CodeBlock
+    {
+        $code = new CodeBlock();
+
         $reflectionClass = $reflectionMethod->getDeclaringClass();
         $modifiers = $reflectionMethod->getModifiers();
 
         $modifiers &= ~ReflectionMethod::IS_ABSTRACT;
+        $modifiersAndFunction = Reflection::getModifierNames($modifiers);
+        $modifiersAndFunction[] = 'function';
 
-        $definition = Reflection::getModifierNames($modifiers);
-        $definition[] = 'function';
-
-        $parameterDeclarations = implode(', ', $this->getParameterDeclarations($reflectionMethod, $reflectionClass));
-        $methodDeclaration = $reflectionMethod->getShortName() . '(' . $parameterDeclarations . ')';
+        $code->add(implode(' ', $modifiersAndFunction))
+            ->add(' ')
+            ->add($reflectionMethod->getShortName() . '(')
+            ->mergeInline($this->getParameterDeclarations($reflectionMethod, $reflectionClass))
+            ->add(')');
 
         if ($reflectionMethod->hasReturnType()) {
-            $methodDeclaration .= ': ';
-            $methodDeclaration .= $this->getType($reflectionMethod->getReturnType(), $reflectionClass);
+            $code->add(': ')
+                ->add($this->getType($reflectionMethod->getReturnType(), $reflectionClass));
         }
-        $definition[] = $methodDeclaration;
 
-        $declaration = implode(' ', $definition);
-
-        $attributes = $this->getMethodAttributes($reflectionMethod);
-
-        return implode("\n", array_merge($attributes, [$declaration]));
+        return $code;
     }
 
     protected function getParameterDeclarations(
         ReflectionMethod $reflectionMethod,
         ReflectionClass $reflectionClass
-    ): array {
-        $parameters = [];
+    ): CodeBlock {
+        $code = new CodeBlock();
         foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
-            $parameters[] = $this->getParameterDeclaration($reflectionParameter, $reflectionMethod, $reflectionClass);
+            if ($code->lineCount() > 0) {
+                $code->add(', ');
+            }
+            $code->mergeInline(
+                $this->getParameterDeclaration($reflectionParameter, $reflectionMethod, $reflectionClass)
+            );
         }
-        return $parameters;
+
+        return $code;
     }
 
     protected function getParameterDeclaration(
         ReflectionParameter $reflectionParameter,
         ReflectionMethod $reflectionMethod,
         ReflectionClass $reflectionClass
-    ): string {
-        $definition = [];
+    ): CodeBlock {
+        $code = new CodeBlock();
+        $propertiesAndName = [];
 
         if ($reflectionMethod->getShortName() == '__construct') {
             $reflectionProperty = $this->findClassProperty($reflectionParameter->getName(), $reflectionClass);
@@ -68,22 +92,22 @@ class MethodDeclarationBuilder
             // true is not needed
             if ($reflectionProperty !== null) {
                 if ($reflectionProperty->isPublic()) {
-                    $definition[] = 'public';
+                    $propertiesAndName[] = 'public';
                 } elseif ($reflectionProperty->isProtected()) {
-                    $definition[] = 'protected';
+                    $propertiesAndName[] = 'protected';
                 } elseif ($reflectionProperty->isPrivate()) {
-                    $definition[] = 'private';
+                    $propertiesAndName[] = 'private';
                 }
 
                 // isReadOnly() is only available in PHP 8.1 and later, but promoted properties are available in PHP 8.0
                 if (method_exists($reflectionProperty, 'isReadOnly') && $reflectionProperty->isReadOnly()) {
-                    $definition[] = 'readonly';
+                    $propertiesAndName[] = 'readonly';
                 }
             }
         }
 
         if ($reflectionParameter->hasType()) {
-            $definition[] = $this->getType($reflectionParameter->getType(), $reflectionClass);
+            $propertiesAndName[] = $this->getType($reflectionParameter->getType(), $reflectionClass);
         }
 
         $name = '$' . $reflectionParameter->getName();
@@ -95,12 +119,13 @@ class MethodDeclarationBuilder
             $name = '...' . $name;
         }
 
-        $definition[] = $name;
+        $propertiesAndName[] = $name;
+        $code->add(implode(' ', $propertiesAndName));
 
         if ($reflectionParameter->isDefaultValueAvailable()) {
-            $definition[] = '=';
+            $code->add(' = ');
             if ($reflectionParameter->isDefaultValueConstant()) {
-                $definition[] = $reflectionParameter->getDefaultValueConstantName();
+                $code->add($reflectionParameter->getDefaultValueConstantName());
             } else {
                 $defaultValue = $reflectionParameter->getDefaultValue();
                 if (is_object($defaultValue)) {
@@ -110,19 +135,18 @@ class MethodDeclarationBuilder
                 } else {
                     $defaultValue = json_encode($defaultValue);
                 }
-                $definition[] = $defaultValue;
+                $code->mergeInline(new CodeBlock(explode("\n", $defaultValue)));
             }
         }
 
-        $signature = implode(' ', $definition);
+        $parameters = $this->getParameterAttributes($reflectionParameter);
 
-        $attributes = $this->getParameterAttributes($reflectionParameter);
-        if (count($attributes) == - 0) {
-            return $signature;
+        // each parameter attribute should be on its own line
+        if ($parameters->lineCount() > 0) {
+            $parameters->prependLine();
         }
 
-        $attributes[] = $signature;
-        return "\n" . implode("\n", $attributes);
+        return $parameters->merge($code);
     }
 
     protected function findClassProperty(string $name, ReflectionClass $reflectionClass)
@@ -204,33 +228,36 @@ class MethodDeclarationBuilder
         return $fqType;
     }
 
-    protected function getMethodAttributes(ReflectionMethod $method): array
+    protected function getMethodAttributes(ReflectionMethod $method): CodeBlock
     {
+        $code = new CodeBlock();
+
         // getAttributes is only available in PHP 8.0 and later
         if (!method_exists($method, 'getAttributes')) {
-            return [];
+            return $code;
         }
 
-        $lines = [];
         foreach ($method->getAttributes() as $attribute) {
-            $lines[] = $this->attributeBuilder->build($attribute);
+            $code->merge($this->attributeBuilder->build($attribute));
         }
 
-        return $lines;
+        return $code;
     }
 
-    protected function getParameterAttributes(ReflectionParameter $parameter): array
+    protected function getParameterAttributes(ReflectionParameter $parameter): CodeBlock
     {
+        $code = new CodeBlock();
+
         // getAttributes is only available in PHP 8.0 and later
         if (!method_exists($parameter, 'getAttributes')) {
-            return [];
+            return $code;
         }
 
         $lines = [];
         foreach ($parameter->getAttributes() as $attribute) {
-            $lines[] = $this->attributeBuilder->build($attribute);
+            $code->merge($this->attributeBuilder->build($attribute));
         }
 
-        return $lines;
+        return $code;
     }
 }

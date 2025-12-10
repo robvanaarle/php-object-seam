@@ -2,18 +2,17 @@
 
 // phpcs:disable Generic.Files.LineLength
 
-namespace PHPObjectSeam\ObjectSeam;
+namespace PHPObjectSeam\Code;
 
 use PHPObjectSeam\ObjectSeam;
-use PHPObjectSeam\ObjectSeam\Seam;
 use PHPObjectSeam\ObjectSeam\ClassSeam;
-use PHPObjectSeam\ObjectSeam\CodeBuilder;
 use PHPObjectSeam\ObjectSeam\ObjectSeamTrait;
+use PHPObjectSeam\ObjectSeam\Seam;
 use PHPObjectSeam\TestClasses\MethodProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
-class CodeBuilderTest extends TestCase
+class ObjectSeamBuilderTest extends TestCase
 {
     public static function provideMethods(): array
     {
@@ -27,8 +26,8 @@ class CodeBuilderTest extends TestCase
     public function testCodeIsValid(string $class)
     {
         $objectSeamClass = 'TestClass' . md5((string)rand());
-        $builder = new CodeBuilder($objectSeamClass, $class);
-        $code = $builder->build();
+        $builder = new ObjectSeamBuilder($objectSeamClass, $class);
+        $code = $builder->build()->toString();
 
         eval($code);
         $reflectionClass = new ReflectionClass($objectSeamClass);
@@ -51,18 +50,18 @@ class CodeBuilderTest extends TestCase
         $classCode = <<<CODE
 class $class
 {
-    public function method() { }
+  public function method() { }
 }
 CODE;
         $objectSeamCode = <<<CODE
 class $objectSeamClass extends $class implements $objectSeamInterface
 {
-    use $objectSeamTrait;
+  use $objectSeamTrait;
 
-    public function method()
-    {
-        return $seamClass::getInstance(\$this)->call(__FUNCTION__, ...func_get_args());
-    }
+  public function method()
+  {
+    return $seamClass::getInstance(\$this)->call(__FUNCTION__, ...func_get_args());
+  }
 }
 CODE;
         $result['method: no result type'] = [$class, $classCode, $objectSeamClass, $objectSeamCode];
@@ -74,18 +73,18 @@ CODE;
             $classCode = <<<CODE
 class $class
 {
-    public function method(): void { }
+  public function method(): void { }
 }
 CODE;
             $objectSeamCode = <<<CODE
 class $objectSeamClass extends $class implements $objectSeamInterface
 {
-    use $objectSeamTrait;
+  use $objectSeamTrait;
 
-    public function method(): void
-    {
-        $seamClass::getInstance(\$this)->call(__FUNCTION__, ...func_get_args());
-    }
+  public function method(): void
+  {
+    $seamClass::getInstance(\$this)->call(__FUNCTION__, ...func_get_args());
+  }
 }
 CODE;
             $result['method: void result type'] = [$class, $classCode, $objectSeamClass, $objectSeamCode];
@@ -98,18 +97,18 @@ CODE;
             $classCode = <<<CODE
 class $class
 {
-    public function method(): never { while(true) {  } }
+  public function method(): never { while(true) {  } }
 }
 CODE;
             $objectSeamCode = <<<CODE
 class $objectSeamClass extends $class implements $objectSeamInterface
 {
-    use $objectSeamTrait;
+  use $objectSeamTrait;
 
-    public function method(): never
-    {
-        $seamClass::getInstance(\$this)->call(__FUNCTION__, ...func_get_args());
-    }
+  public function method(): never
+  {
+    $seamClass::getInstance(\$this)->call(__FUNCTION__, ...func_get_args());
+  }
 }
 CODE;
             $result['method: never result type'] = [$class, $classCode, $objectSeamClass, $objectSeamCode];
@@ -127,12 +126,12 @@ CODE;
         $objectSeamCode = <<<CODE
 class $objectSeamClass extends $class implements $objectSeamInterface
 {
-    use $objectSeamTrait;
+  use $objectSeamTrait;
 
-    public static function method()
-    {
-        return $classSeam::getInstance(__CLASS__)->call(__FUNCTION__, ...func_get_args());
-    }
+  public static function method()
+  {
+    return $classSeam::getInstance(__CLASS__)->call(__FUNCTION__, ...func_get_args());
+  }
 }
 CODE;
 
@@ -147,18 +146,18 @@ CODE;
             $classCode = <<<CODE
 class $class
 {
-    public static function method(): void { }
+  public static function method(): void { }
 }
 CODE;
             $objectSeamCode = <<<CODE
 class $objectSeamClass extends $class implements $objectSeamInterface
 {
-    use $objectSeamTrait;
+  use $objectSeamTrait;
 
-    public static function method(): void
-    {
-        $classSeam::getInstance(__CLASS__)->call(__FUNCTION__, ...func_get_args());
-    }
+  public static function method(): void
+  {
+    $classSeam::getInstance(__CLASS__)->call(__FUNCTION__, ...func_get_args());
+  }
 }
 CODE;
             $result['static method: void result type'] = [$class, $classCode, $objectSeamClass, $objectSeamCode];
@@ -171,18 +170,18 @@ CODE;
             $classCode = <<<CODE
 class $class
 {
-    public static function method(): never { while(true) {  } }
+  public static function method(): never { while(true) {  } }
 }
 CODE;
             $objectSeamCode = <<<CODE
 class $objectSeamClass extends $class implements $objectSeamInterface
 {
-    use $objectSeamTrait;
+  use $objectSeamTrait;
 
-    public static function method(): never
-    {
-        $classSeam::getInstance(__CLASS__)->call(__FUNCTION__, ...func_get_args());
-    }
+  public static function method(): never
+  {
+    $classSeam::getInstance(__CLASS__)->call(__FUNCTION__, ...func_get_args());
+  }
 }
 CODE;
             $result['static method: never result type'] = [$class, $classCode, $objectSeamClass, $objectSeamCode];
@@ -199,8 +198,8 @@ CODE;
     {
         eval($classCode);
 
-        $builder = new CodeBuilder($objectSeamClass, $class);
-        $code = $builder->build();
+        $builder = new ObjectSeamBuilder($objectSeamClass, $class);
+        $code = $builder->build()->toString();
 
         $this->assertEquals($expectedObjectSeamCode, $code);
     }
