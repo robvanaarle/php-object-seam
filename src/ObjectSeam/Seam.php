@@ -82,7 +82,12 @@ final class Seam
             return $this->overrides[$function]->bindTo($this->objectSeam, $this->objectSeam);
         }
         $reflectionMethod = $this->getReflectionMethod($function);
-        $reflectionMethod->setAccessible(true);
+
+        if (PHP_VERSION_ID < 80200) {
+            // As of PHP 8.1.0, calling this method has no effect; all methods are invokable by default.
+            // This function has been DEPRECATED as of PHP 8.5.0
+            $reflectionMethod->setAccessible(true);
+        }
 
         return $reflectionMethod->getClosure($this->objectSeam);
     }
@@ -151,8 +156,25 @@ final class Seam
 
     protected function getReflectionMethod(string $function): ReflectionMethod
     {
+        // check if property hook: $var::set or $var::get
+        if (substr($function, -5) === '::get' || substr($function, -5) === '::set') {
+            $parts = explode('::', $function);
+            $property = substr($parts[0], 1); // remove leading $
+            /* @phpstan-ignore class.notFound,class.notFound */
+            $hookType = substr($function, -5) === '::get' ? \PropertyHookType::Get : \PropertyHookType::Set;
+            return $this->getReflectionHook($property, $hookType);
+        }
+
         $reflectionMethod = new ReflectionMethod(get_parent_class($this->objectSeam), $function);
         return $reflectionMethod;
+    }
+
+    /* @phpstan-ignore class.notFound */
+    protected function getReflectionHook(string $property, \PropertyHookType $hookType): ReflectionMethod
+    {
+        $reflectionProperty = new \ReflectionProperty(get_parent_class($this->objectSeam), $property);
+        /* @phpstan-ignore method.notFound */
+        return $reflectionProperty->getHook($hookType);
     }
 
     public function overrideStatic(string $function, $resultOrClosure): self

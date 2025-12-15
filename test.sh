@@ -16,9 +16,15 @@ elif [ "$phpVersion" == "7.4" ]; then
 elif [ "$phpVersion" == "8.0" ]; then
   phpunitVersion="9.5.20"
 elif [ "$phpVersion" == "8.1" ]; then
-  phpunitVersion="9.5.20"
+  phpunitVersion="10.5.60"
 elif [ "$phpVersion" == "8.2" ]; then
-    phpunitVersion="9.5.20"
+    phpunitVersion="10.5.60"
+elif [ "$phpVersion" == "8.3" ]; then
+    phpunitVersion="10.5.60"
+elif [ "$phpVersion" == "8.4" ]; then
+    phpunitVersion="10.5.60"
+elif [ "$phpVersion" == "8.5" ]; then
+    phpunitVersion="10.5.60"
 else
   echo "unsupported PHP version $phpVersion"
   exit 1
