@@ -1,70 +1,152 @@
 # PHP Object Seam
-PHP Object Seam provides an easy way to create object seams in PHP. These are used in legacy code for breaking dependencies to make code testable with minimal changes to the Class Under Test.
+*A lightweight toolkit for introducing object seams into legacy PHP code to make it testable - with minimal or no changes to the Class Under Test.*
 
-Legacy code is hard to extend and maintain because of dependencies. Ideally it needs to be refactored, however there isn't always time for that. To be confident about new features or bug fixes to legacy code, automated tests need to be in place. But legacy code tends not to have (enough) automated tests. These are also hard to add, because of the same dependencies. To put tests in place, the dependencies have to be broken first by changing the code. These changes need to be tested as well, but that is difficult because of the same reasons.
+Legacy PHP code can be difficult to extend and test because dependencies are tightly coupled and often hidden behind private methods, static helpers, or heavy constructors. Although refactoring is ideal, complexity and time constraints often prevent it. To safely add new features or fix bugs, automated tests must come first - but those same dependencies make adding tests hard.
 
-In his book _Working Effectively with Legacy Code_ Michael Feathers defines a seam as _"a place to alter program behavior, without changing the code"_. This enables breaking of dependencies and adding automated tests with no or minimal change to the code. This library offers a way to create one of the seam types: object seams. With object seams it's possible to change the Object Under Test in automated tests and leave the code of the Class Under Test as is.
+In *Working Effectively with Legacy Code*, Michael Feathers defines a **seam** as *“a place to alter program behavior, without changing the code.”*  
+This library provides an implementation of **object seams**, enabling you to:
 
+- Invoke private/protected behavior
+- Override methods, static methods and hooks at runtime
+- Capture calls for assertions
+- Instantiate objects without running their original constructors
+
+All **without or minimal modifications to the original class**.
 
 ## Installation
-`composer require --dev robvanaarle/php-object-seam ^1`
+`composer require --dev robvanaarle/php-object-seam:^1`
 
 ## Requirements
-PHP >= 7.0
+PHP >= 7.0. This package supports a wide range of PHP versions to accommodate legacy codebases.
 
-As legacy code often runs on older PHP versions, this package aims to support as many PHP versions as possible.
+## Example
+```php
+class TemperatureApi
+{
+    public function getCurrentTemperature(string $location): float
+    {
+        $weatherData = $this->getWeatherData($location);
 
-## Features
-- Call protected and private methods
-- Call protected static methods
-- Call protected and private property hooks
-- Override public and protected methods
-- Override public and protected static methods
-- Override public and protected property hooks
-- Instantiate an object with a custom constructor
-- Capture and retrieve public and protected method calls
-- Capture and retrieve public and protected static method calls
-- Capture and retrieve public and protected property hook calls
-- Autocomplete in PhpStorm when using the `CreatesObjectSeams` trait
-- Testing framework agnostic
+        if ('unknown_location' === $weatherData['error']) {
+            throw new \InvalidArgumentException("Unknown location: {$location}");
+        }
+        if (null !== $weatherData['error']) {
+            throw new \RuntimeException("Weather API error: {$weatherData['error']}");
+        }
 
-This allows for the following dependency breaking techniques from the book _Working Effectively with Legacy Code_.
-- Subclass and make public
-- Subclass and override
-- Expose static method
+        return $this->fahrenheitToCelsius($weatherData['current']['temp_f']);
+    }
 
-## Advantages over manually creating object seam code
-- Less code: much of the required code is generated
-- Faster to write
-- More explicit about the intent to break dependencies: manually created object seam code tends to become fuzzy
-- An `ObjectSeam` can be partially constructed before tests and altered (and even constructed) for specific test
+    private function fahrenheitToCelsius(float $fahrenheit): float
+    {
+        return ($fahrenheit - 32) * 5 / 9;
+    }
+    
+    private function getWeatherData(string $location): array
+    {
+        $weatherData = json_decode(file_get_contents("http://api.weatherapi.com/v1/{$location}/current"), true);
+        return $weatherData;
+    }
+}
+```
+Testing `TemperatureApi` is difficult because the only public method makes an actual HTTP request, which is problematic because it is slow, unreliable, and may incur costs. It should be refactored if possible, but when that is not an option, we can use object seams to test it.
 
-## Basic Usage
-Use the trait `PHPObjectSeam\CreatedObjectSeams` in your test class to create an `ObjectSeams`. An `ObjectSeam` is usually created for the Object Under Test. It can then be altered with no or minimal code changes to the Class Under Test, for example to call non-public methods or override method behaviour. A created `ObjectSeam` is unconstructed: the original constructor, `__construct`, has not been called. This allows for setting up an `ObjectSeam` that can be reused and customized by multiple tests.
+Without modifying the class, we can use an object seam to call the private method `fahrenheitToCelsius()` directly to test it:
 
 ```php
-class FooTest
+public function testFahrenheitToCelsiusAtFreezingPoint(): void
+{
+    $api = $this->createObjectSeam(TemperatureApi::class);
+
+    // Call the protected method via the seam.
+    static::assertEquals(0.0, $api->seam()->call('fahrenheitToCelsius', 32.0));
+}
+```
+
+The error handling of `getCurrentTemperature()` can be tested by first making a small change ('incision') to the `TemperatureApi` class: make `getWeatherData()` protected. This allows for overriding the method to return controlled data:
+
+```php
+public function testUnknownLocationThrowsException(): void
+{
+    $api = $this->createObjectSeam(TemperatureApi::class);
+    // $api behaves exactly like TemperatureApi, but we can override behavior.
+
+    // Override the getWeatherData method to simulate an unknown location.
+    // Method must be protected or public to be overridden.
+    $api->seam()->override('getWeatherData', function (string $location) {
+        return ['error' => 'unknown_location'];
+    });
+
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectExceptionMessage('Unknown location: Atlantis');
+
+    $api->getCurrentTemperature('Atlantis');
+}
+```
+
+## Features
+These capabilities map directly to Feathers’ dependency-breaking techniques: 'Subclass and Make Public', 'Subclass and Override' and 'Expose Static Method'.
+
+### Introspection & Invocation
+- Call **protected/private methods**
+- Call **protected static methods**
+- Call **protected/private property** get/set hooks
+
+### Behavior Overrides
+- Override **public/protected methods**
+- Override **public/protected static methods**
+- Override **public/protected property hooks**
+
+### Call Capturing
+- Capture calls to public/protected methods
+- Capture calls to public/protected static methods
+- Capture calls to public/protected property hooks
+
+### Object Construction
+- Instantiate objects **without executing** the original constructor
+- Provide a **custom constructor**
+- Defer construction and call it later
+
+### Developer Experience
+- Autocomplete support in PhpStorm using `CreatesObjectSeams`
+- Testing-framework agnostic
+
+## Why Not Create Seams Manually?
+
+Manually creating seams usually involves writing boilerplate subclasses or duplicated logic.  
+PHP Object Seam provides:
+
+- **Less code** - most seam logic is generated for you
+- **Clearer test intent** - overrides are explicit
+- **Faster test authoring**
+- **Reusable, configurable seam instances** that can be adapted per test case
+
+## Basic Usage in tests
+
+```php
+class CurrencyApiTest
 {
     use PHPObjectSeam\CreatesObjectSeams;
     
-    public function testBar(): void
+    public function testExample(): void
     {
-        $foo = $this->createObjectSeam(Foo::class);
-        // $foo has type Foo&PHPObjectSeam\ObjectSeam
+        // Creates an CurrencyApi&ObjectSeam object - the constructor is not executed
+        $api = $this->createObjectSeam(CurrencyApi::class);
+        // $api behaves exactly like CurrencyApi, but we can override behavior.
         
-        // Access seam through seam() to alter the behaviour of the object
-        $foo->seam()
+        $api->seam()
           ->override('connect', fn ($username, $password) => 'dummy_token')
           ->customConstruct(function($arg1) {
               $this->url = 'http://www.dummy.url/' . $arg1;
           }, 'api/v1/');
           
-        // do something with $foo and perform an assertion
+        // do something with $api
+        static::assertEquals('dummy_token', $api->getToken());
     }
 }
 ```
 
-## Usage
+## Usage Guide
 
 ### Call non-public method
 ```php
@@ -72,15 +154,11 @@ $foo = $this->createObjectSeam(Foo::class);
 $result = $foo->seam()->call('nonPublicMethod', $arg1, $arg2);
 ```
 
-This can be used for 'Subclass and make public'.
-
 ### Call protected static method
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $result = $foo->seam()->callStatic('protectedStaticMethod', $arg1, $arg2);
 ```
-
-This can be used for 'Subclass and make public'.
 
 ### Call non-public property hook
 ```php
@@ -89,8 +167,6 @@ $foo->seam()->call('$nonPublicProperty::set', $value);
 $value = $foo->seam()->call('$nonPublicProperty::get');
 ```
 
-This can be used for 'Subclass and make public'.
-
 ### Override public or protected method
 Overridden methods are executed in the scope of the object seam class.
 
@@ -98,7 +174,7 @@ Override with a Closure:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->override('publicOrProtectedMethod', function(int $arg1) {
-  return $this->otherMethod($arg1) * 5;
+    return $this->otherMethod($arg1) * 5;
 });
 ```
 
@@ -108,8 +184,6 @@ $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->override('publicOrProtectedMethod', 42);
 ```
 
-This can be used for 'Subclass and override' with the goal altering behaviour of a public or protected method.
-
 ### Override public or protected static method
 Overridden static methods are executed in the scope of the object seam class.
 
@@ -117,7 +191,7 @@ Override with a Closure:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->overrideStatic('publicOrProtectedStaticMethod', function(int $arg1) {
-  return parent::protectedMethod($arg1) * 3;
+    return parent::protectedMethod($arg1) * 3;
 });
 ```
 
@@ -127,8 +201,6 @@ $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->overrideStatic('publicOrProtectedStaticMethod', 9);
 ```
 
-This can be used for 'Subclass and override' with the goal altering behaviour of a public or protected static method.
-
 ### Override public or protected property hook
 Overridden property hooks are executed in the scope of the object seam class.
 
@@ -136,10 +208,9 @@ Override with a Closure:
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->override('$publicOrProtectedProperty::set', function(int $value) {
-  $this->value = $value * 2;
-});
-$foo->seam()->override('$publicOrProtectedProperty::get', function() {
-  return $this->value + 10;
+    $this->value = $value * 2;
+})->override('$publicOrProtectedProperty::get', function() {
+    return $this->value + 10;
 });
 ```
 
@@ -148,8 +219,6 @@ Override with a result value:
 $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->override('$publicOrProtectedProperty::get', 25);
 ```
-
-This can be used for 'Subclass and override' with the goal altering behaviour of a public or protected method.
 
 ### Instantiate an object with a custom constructor
 ```php
@@ -171,24 +240,15 @@ $this->foo->seam()->setCustomConstructor(function($arg1) {
 $this->foo->callCustomConstructor('api/v1/');
 ```
 
-'Expose static method' can be achieved by not using a constructor and by calling the desired method. There is then no need to make that method static.
-
-```php
-$this->foo = $this->createObjectSeam(Foo::class);
-$this->foo->seam()->call('methodThatDoesNotUseThisKeyword');
-```
-
 ### Call original constructor
-Often there is no need for a custom constructor, the original constructor has to be called then.
+Often there is no need for a custom constructor; in that case, the original constructor can be called.
 
 ```php
 $foo = $this->createObjectSeam(Foo::class);
+$foo->__construct('bar');
+
+// or via the seam interface
 $foo->seam()->call('__construct', 'bar');
-```
-
-or use the helper method `callConstruct()` for this
-```php
-$foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->callConstruct('bar');
 ```
 
@@ -217,7 +277,7 @@ $foo->seam()->captureStaticCalls('publicOrProtectedStaticMethod');
 // do something with $foo
 $foo::methodThatUsesTheCapturingMethods();
 
-$calls = $foo->seam()->getCapturedStaticCalls('publicOrProtectedMethod');
+$calls = $foo->seam()->getCapturedStaticCalls('publicOrProtectedStaticMethod');
 // assert that $calls contains a certain combination of arguments.
 ```
 
@@ -227,10 +287,10 @@ Capturing and retrieving calls allows for asserting that a method has been calle
 ```php
 $foo = $this->createObjectSeam(Foo::class);
 $foo->seam()->captureCalls('$publicOrProtectedProperty::get')
-  ->captureCalls('$publicOrProtectedProperty::set');
+    ->captureCalls('$publicOrProtectedProperty::set');
 
 // do something with $foo
-$foo->methodThatUsesTheCapturingPropeties();
+$foo->methodThatUsesTheCapturingProperties();
 
 $getCalls = $foo->seam()->getCapturedCalls('$publicOrProtectedProperty::get');
 $setCalls = $foo->seam()->getCapturedCalls('$publicOrProtectedProperty::set');
